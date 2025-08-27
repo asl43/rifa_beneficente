@@ -178,14 +178,14 @@
             box-shadow: 0 10px 20px rgba(0, 184, 148, 0.4);
         }
 
-        .number-btn.selected {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        .number-btn.reserved {
+            background: linear-gradient(135deg, #ff9f43, #ff6b6b);
             animation: pulse 1s infinite;
         }
-
+        
         .number-btn.taken {
-            background: #ddd;
-            color: #999;
+            background: #e74c3c;
+            color: white;
             cursor: not-allowed;
         }
 
@@ -200,6 +200,30 @@
             100% { transform: scale(1); }
         }
 
+        .raffle-description-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #00b894;
+            display: none;
+        }
+
+        .raffle-description-section h2 {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #2d3436;
+            margin-bottom: 15px;
+        }
+
+        .raffle-description-section p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #555;
+            text-align: justify;
+            white-space: pre-wrap;
+        }
+        
         .payment-section {
             background: white;
             padding: 30px;
@@ -471,9 +495,14 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
+        
+        .admin-number-btn.reserved {
+            background: #ff9f43;
+            color: white;
+        }
 
         .admin-number-btn.taken {
-            background: #ff6b6b;
+            background: #e74c3c;
             color: white;
         }
 
@@ -726,6 +755,141 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        
+        .admin-settings-section textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        
+        .description-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .description-buttons .save-btn,
+        .description-buttons .cancel-btn {
+            width: 100%;
+        }
+
+        .bundles-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .bundles-grid {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .bundle-btn {
+            background: linear-gradient(135deg, #ff9f43, #ff6b6b);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .bundle-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 159, 67, 0.4);
+        }
+
+        .admin-toggle-btn {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .admin-toggle-btn.on {
+            background-color: #00b894;
+            color: white;
+        }
+
+        .admin-toggle-btn.off {
+            background-color: #ff6b6b;
+            color: white;
+        }
+
+        #winnerDisplay {
+            margin-top: 20px;
+            padding: 20px;
+            background: #ffecb3;
+            border: 2px dashed #ff9800;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #d35400;
+            display: none;
+        }
+        
+        .bundle-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .bundle-input-group input {
+            flex: 1;
+        }
+
+        .remove-bundle-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #chooseNumbersModal .modal-buttons {
+            justify-content: center;
+        }
+        
+        .numbers-selection-message {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #74b9ff;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .manual-selection-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .manual-selection-container .admin-number-btn {
+            font-size: 1rem;
+            padding: 10px;
+        }
+        
+        .manual-selection-container .admin-number-btn.selected {
+            background: #00b894;
+        }
 
         @media (max-width: 768px) {
             #mainTitle {
@@ -777,6 +941,10 @@
                 font-size: 1.5rem;
                 gap: 10px;
             }
+            
+            .bundles-grid {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -787,7 +955,7 @@
                 <h1 id="mainTitle">RIFA SOLIDÁRIA</h1>
                 <button class="edit-btn" onclick="editTitle()">✏️ Editar</button>
             </div>
-            <p class="subtitle">Participe e ajude uma boa causa!</p>
+            <p class="subtitle" id="mainSubtitle">Participe e ajude uma boa causa!</p>
             
             <div id="countdownContainer">
                 <span>SORTEIO EM:</span>
@@ -833,17 +1001,36 @@
                 <p>Esta rifa foi finalizada. Obrigado a todos que participaram!</p>
             </div>
 
+            <div id="winnerDisplay">
+                <h2>🎉 Ganhador da Rifa 🎉</h2>
+                <p id="winnerText"></p>
+            </div>
+
+            <div class="bundles-section" id="bundlesSection" style="display:none;">
+                <h2 class="numbers-title">🎁 Compre Pacotes de Números</h2>
+                <div class="bundles-grid" id="bundlesGrid">
+                    </div>
+            </div>
+
             <div class="numbers-container" id="numbersContainer">
-                <h2 class="numbers-title">🎲 Escolha seu Número da Sorte</h2>
+                <h2 class="numbers-title" id="numbersTitle">🎲 Escolha seu Número da Sorte</h2>
+                <p class="numbers-selection-message" id="selectionMessage" style="display:none;">
+                    Por favor, selecione <span id="requiredNumbers"></span> número(s).
+                </p>
                 <div class="numbers-grid" id="numbersGrid">
                     </div>
+            </div>
+
+            <div class="raffle-description-section" id="raffleDescriptionSection">
+                <h2>Sobre a Rifa</h2>
+                <p id="raffleDescriptionText"></p>
             </div>
 
             <div class="payment-section" id="paymentSection">
                 <h2 class="payment-title">💳 Finalizar Participação</h2>
                 
                 <div class="selected-number" id="selectedNumberDisplay">
-                    Número selecionado: <span id="selectedNumber">-</span>
+                    Número(s) selecionado(s): <span id="selectedNumbers">-</span>
                 </div>
 
                 <div class="amount-input-group">
@@ -858,7 +1045,7 @@
                 <div class="pix-info" id="pixInfo">
                     <h3>📱 Informações do PIX</h3>
                     <p><strong>Valor:</strong> R$ <span id="pixAmount">0,00</span></p>
-                    <p><strong>Número escolhido:</strong> <span id="pixNumber">-</span></p>
+                    <p><strong>Número(s) escolhido(s):</strong> <span id="pixNumbers">-</span></p>
                     <p><strong>Chave PIX:</strong></p>
                     <div class="pix-key" id="pixKey">
                         <span id="pixKeyValue">7bfe6310-8a37-4178-8ba8-8fd532dfa50b</span>
@@ -893,6 +1080,36 @@
             </div>
 
             <div id="adminContent" style="display: none;">
+                <div class="admin-section">
+                    <h3>⚙️ Controles de Funcionalidades</h3>
+                    <div class="admin-settings-section">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Pacotes de Números:</label>
+                            <button id="bundlesToggle" class="admin-toggle-btn" onclick="toggleFeature('bundlesEnabled')">
+                                Desativar Pacotes
+                            </button>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Subtítulo Personalizado:</label>
+                            <button id="customSubtitleToggle" class="admin-toggle-btn" onclick="toggleFeature('customSubtitlesEnabled')">
+                                Desativar Subtítulo
+                            </button>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Sorteio Aleatório de Ganhador:</label>
+                            <button id="winnerDrawToggle" class="admin-toggle-btn" onclick="toggleFeature('randomWinnerDrawEnabled')">
+                                Desativar Sorteio
+                            </button>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Notificação para o Admin (WhatsApp):</label>
+                            <button id="autoNotificationsToggle" class="admin-toggle-btn" onclick="toggleFeature('autoNotificationsEnabled')">
+                                Desativar Notificações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="admin-section">
                     <h3>📊 Estatísticas de Acesso</h3>
                     <div class="stats-grid">
@@ -972,6 +1189,42 @@
                             <label style="display: block; margin-bottom: 5px; font-weight: bold;">Contagem Regressiva:</label>
                             <button id="countdownToggle" onclick="toggleCountdown()" style="width: 100%; padding: 8px;">Ativar/Desativar</button>
                         </div>
+                        <div id="subtitleSection" style="display:none;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Subtítulo da Rifa:</label>
+                            <input type="text" id="adminSubtitle" class="admin-input" style="width: 100%;" placeholder="Digite o subtítulo">
+                            <button class="save-btn" onclick="updateSubtitle()">Salvar Subtítulo</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>📦 Configurações de Pacotes</h3>
+                    <div id="bundleSettings">
+                        <div class="bundle-input-group">
+                            <input type="number" id="newBundleNumbers" placeholder="Nº de bilhetes" min="1">
+                            <input type="number" id="newBundlePrice" placeholder="Valor (R$)" min="0.01" step="0.01">
+                            <button class="save-btn" onclick="addBundle()">Adicionar Pacote</button>
+                        </div>
+                        <ul id="bundleList"></ul>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>📝 Detalhes da Rifa</h3>
+                    <textarea id="adminRaffleDescription" placeholder="Escreva aqui uma descrição detalhada da rifa..."></textarea>
+                    <div class="description-buttons">
+                        <button class="save-btn" onclick="updateRaffleDescription()">Salvar Descrição</button>
+                        <button class="cancel-btn" onclick="clearRaffleDescription()">Limpar Descrição</button>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>⏱️ Cronômetro do Sorteio</h3>
+                    <p style="text-align: center; font-size: 2rem; font-weight: bold;" id="stopwatchDisplay">00:00:00</p>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="save-btn" onclick="startStopwatch()" style="flex: 1;">Iniciar</button>
+                        <button class="cancel-btn" onclick="pauseStopwatch()" style="flex: 1;">Pausar</button>
+                        <button class="reset-raffle-btn" onclick="resetStopwatch()" style="flex: 1;">Reiniciar</button>
                     </div>
                 </div>
 
@@ -988,12 +1241,14 @@
                 </div>
 
                 <div class="admin-section" id="manual-management">
-                    <h3>✅ Gerenciamento Manual</h3>
-                    <input type="number" id="participantNumber" class="admin-input" min="1" max="1000" placeholder="Número">
+                    <h3>✅ Gerenciamento Manual de Vendas</h3>
+                    <p>Clique nos números abaixo para selecionar os que foram pagos:</p>
+                    <div class="manual-selection-container" id="manualNumbersContainer">
+                        </div>
                     <input type="text" id="participantName" class="admin-input name" placeholder="Nome do Participante">
                     <input type="number" id="participantAmount" class="admin-input amount" min="1" step="0.01" placeholder="Valor (R$)">
-                    <button class="add-participant-btn" onclick="addParticipant()">Marcar como Vendido</button>
-                    <button class="reset-number-btn" onclick="removeParticipantByInput()">Marcar como Disponível</button>
+                    <button class="add-participant-btn" onclick="addParticipant()">Confirmar Pagamento</button>
+                    <button class="reset-number-btn" onclick="removeParticipantByInput()">Liberar Número(s)</button>
                 </div>
                 
                 <div class="admin-section">
@@ -1008,6 +1263,7 @@
                     <div class="admin-controls">
                         <button class="end-raffle-btn" onclick="endRaffle()">Encerrar Rifa</button>
                         <button class="reset-raffle-btn" onclick="resetRaffle()">Reiniciar Rifa</button>
+                        <button class="save-btn" id="drawWinnerBtn" style="display:none;" onclick="drawWinner()">🏆 Sortear Ganhador</button>
                     </div>
                 </div>
                 
@@ -1043,22 +1299,55 @@
         </div>
     </div>
 
+    <div class="modal" id="chooseNumbersModal">
+        <div class="modal-content">
+            <h3 style="text-align: center;">Deseja escolher seus números?</h3>
+            <p style="text-align: center; margin-top: 10px;">
+                Pacote: <strong id="modalBundleNumbers"></strong> número(s) por <strong id="modalBundlePrice"></strong>
+            </p>
+            <div class="modal-buttons" style="justify-content: space-around;">
+                <button class="save-btn" onclick="handleUserChoice(true)">Sim, eu quero escolher</button>
+                <button class="cancel-btn" onclick="handleUserChoice(false)">Não, o sistema pode escolher</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script>
-        let selectedNumber = null;
+        let selectedNumbers = [];
         let takenNumbers = new Set();
+        let reservedNumbers = new Set();
         let raffleEnded = false;
         let participants = [];
         const adminPassword = "admin123";
         let maxNumber = 30;
-        let countdownEnabled = true;
-
+        
         let pixKey = "7bfe6310-8a37-4178-8ba8-8fd532dfa50b";
         let whatsappContacts = ["5592993216959"];
         let emailContacts = [];
         let minAmount = 1.00;
         let raffleEndDateTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+        let raffleDescription = "";
+        let customSubtitle = "Participe e ajude uma boa causa!";
+        let currentBundle = null;
+        let isManualSelection = false;
+
+        let selectedManualNumbers = [];
+        let isManualMode = false;
+
+        let features = {
+            bundlesEnabled: true,
+            customSubtitlesEnabled: false,
+            randomWinnerDrawEnabled: false,
+            autoNotificationsEnabled: false
+        };
+        
+        let bundles = [
+            { num: 2, price: 5.00 },
+            { num: 4, price: 10.00 },
+            { num: 5, price: 20.00 }
+        ];
 
         let trackingData = {
             totalVisits: 0,
@@ -1067,6 +1356,12 @@
             desktopVisits: 0,
             todayVisits: 0,
             visitors: []
+        };
+        
+        let stopwatch = {
+            isRunning: false,
+            elapsedTime: 0,
+            startTime: null
         };
 
         function getDeviceInfo() {
@@ -1276,6 +1571,8 @@
             }
         }
         
+        let countdownInterval;
+
         function updateCountdown() {
             const countdownDate = new Date(raffleEndDateTime).getTime();
             const now = new Date().getTime();
@@ -1303,10 +1600,8 @@
             }
         }
         
-        let countdownInterval;
-
         function startCountdown() {
-            if (!countdownEnabled || raffleEnded) {
+            if (!features.countdownEnabled || raffleEnded) {
                 document.getElementById('countdownContainer').classList.add('hidden');
                 clearInterval(countdownInterval);
                 return;
@@ -1318,7 +1613,7 @@
         }
         
         function toggleCountdown() {
-            countdownEnabled = !countdownEnabled;
+            features.countdownEnabled = !features.countdownEnabled;
             saveSettings();
             updateCountdownToggleText();
             startCountdown();
@@ -1326,60 +1621,229 @@
 
         function updateCountdownToggleText() {
             const btn = document.getElementById('countdownToggle');
-            if (countdownEnabled) {
-                btn.textContent = 'Desativar Contagem';
-                btn.style.backgroundColor = '#e74c3c';
+            if (features.countdownEnabled) {
+                btn.textContent = 'Ativado';
+                btn.classList.remove('off');
+                btn.classList.add('on');
             } else {
-                btn.textContent = 'Ativar Contagem';
-                btn.style.backgroundColor = '#00b894';
+                btn.textContent = 'Desativado';
+                btn.classList.remove('on');
+                btn.classList.add('off');
             }
         }
 
-
         function generateNumbers() {
             const grid = document.getElementById('numbersGrid');
+            const bundlesContainer = document.getElementById('bundlesSection');
+            const numbersContainer = document.getElementById('numbersContainer');
+            
             grid.innerHTML = '';
             
+            if (raffleEnded) {
+                bundlesContainer.style.display = 'none';
+                numbersContainer.style.display = 'none';
+                return;
+            } else {
+                // Ao recarregar a página, se não houver seleção de pacotes,
+                // exibe a seção de pacotes e a de números
+                if (!isManualSelection) {
+                    bundlesContainer.style.display = features.bundlesEnabled ? 'block' : 'none';
+                    numbersContainer.style.display = 'block';
+                }
+            }
+
+            if (isManualSelection) {
+                bundlesContainer.style.display = 'none';
+                document.getElementById('numbersTitle').textContent = `Escolha ${currentBundle.num} Número(s)`;
+                document.getElementById('selectionMessage').style.display = 'block';
+                document.getElementById('requiredNumbers').textContent = currentBundle.num;
+            } else {
+                document.getElementById('numbersTitle').textContent = "🎲 Escolha seu Número da Sorte";
+                document.getElementById('selectionMessage').style.display = 'none';
+            }
+
+
             for (let i = 1; i <= maxNumber; i++) {
                 const button = document.createElement('button');
                 button.className = 'number-btn';
                 button.textContent = i.toString().padStart(2, '0');
-                button.onclick = () => selectNumber(i);
-                
-                if (takenNumbers.has(i) || raffleEnded) {
+                button.onclick = () => selectNumber(i, button);
+                if (takenNumbers.has(i)) {
                     button.classList.add('taken');
                     button.onclick = null;
+                } else if (reservedNumbers.has(i)) {
+                    button.classList.add('reserved');
                 }
-                
                 grid.appendChild(button);
             }
+            
+            updateBundleButtons();
         }
+        
+        function updateBundleButtons() {
+            const bundlesGrid = document.getElementById('bundlesGrid');
+            bundlesGrid.innerHTML = '';
+            
+            bundles.sort((a, b) => a.num - b.num);
 
-        function selectNumber(number) {
+            bundles.forEach(bundle => {
+                const btn = document.createElement('button');
+                btn.className = 'bundle-btn';
+                btn.innerHTML = `${bundle.num} Número(s)<br>R$ ${bundle.price.toFixed(2).replace('.', ',')}`;
+                btn.onclick = () => selectBundle(bundle);
+                bundlesGrid.appendChild(btn);
+            });
+        }
+        
+        // CORRIGIDO: Agora a função recebe o botão como parâmetro
+        function selectNumber(number, button) {
             if (takenNumbers.has(number) || raffleEnded) return;
             
-            document.querySelectorAll('.number-btn.selected').forEach(btn => {
-                btn.classList.remove('selected');
+            if (isManualSelection) {
+                const index = selectedNumbers.indexOf(number);
+                if (index > -1) {
+                    selectedNumbers.splice(index, 1);
+                    reservedNumbers.delete(number);
+                    button.classList.remove('reserved');
+                } else {
+                    if (selectedNumbers.length < currentBundle.num) {
+                        selectedNumbers.push(number);
+                        reservedNumbers.add(number);
+                        button.classList.add('reserved');
+                    } else {
+                        alert(`Você já selecionou ${currentBundle.num} números. Remova um para escolher outro.`);
+                    }
+                }
+
+                updateSelectedNumbersDisplay();
+
+                if (selectedNumbers.length === currentBundle.num) {
+                    document.getElementById('amount').value = currentBundle.price.toFixed(2);
+                    showPaymentScreen();
+                }
+
+            } else {
+                selectedNumbers = [number];
+                reservedNumbers.clear();
+                reservedNumbers.add(number);
+                
+                document.querySelectorAll('.number-btn').forEach(btn => {
+                    if(btn !== button && !takenNumbers.has(parseInt(btn.textContent, 10))) {
+                        btn.classList.remove('reserved');
+                    }
+                });
+
+                button.classList.add('reserved');
+                
+                document.getElementById('amount').value = minAmount.toFixed(2);
+                updateSelectedNumbersDisplay();
+                showPaymentScreen();
+            }
+        }
+        
+        function selectBundle(bundle) {
+            const availableCount = maxNumber - takenNumbers.size - reservedNumbers.size;
+            if (availableCount < bundle.num) {
+                alert(`⚠️ Não há números suficientes disponíveis para este pacote. Faltam ${bundle.num - availableCount} números.`);
+                return;
+            }
+            
+            currentBundle = bundle;
+            
+            document.getElementById('modalBundleNumbers').textContent = bundle.num;
+            document.getElementById('modalBundlePrice').textContent = `R$ ${bundle.price.toFixed(2).replace('.', ',')}`;
+            document.getElementById('chooseNumbersModal').style.display = 'block';
+        }
+        
+        function handleUserChoice(userWantsToChoose) {
+            document.getElementById('chooseNumbersModal').style.display = 'none';
+
+            if (userWantsToChoose) {
+                isManualSelection = true;
+                selectedNumbers = [];
+                document.getElementById('numbersTitle').textContent = `Escolha ${currentBundle.num} Número(s)`;
+                document.getElementById('selectionMessage').style.display = 'block';
+                document.getElementById('requiredNumbers').textContent = currentBundle.num;
+                document.getElementById('bundlesSection').style.display = 'none';
+                document.getElementById('numbersContainer').style.display = 'block';
+                generateNumbers(); // Redesenha os botões para mostrar o estado inicial de seleção do pacote
+            } else {
+                isManualSelection = false;
+                autoSelectNumbers(currentBundle.num);
+            }
+        }
+        
+        function autoSelectNumbers(count) {
+            selectedNumbers = [];
+            const availableNumbers = [];
+            for (let i = 1; i <= maxNumber; i++) {
+                if (!takenNumbers.has(i) && !reservedNumbers.has(i)) {
+                    availableNumbers.push(i);
+                }
+            }
+            
+            availableNumbers.sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < count; i++) {
+                if (availableNumbers.length > i) {
+                    selectedNumbers.push(availableNumbers[i]);
+                }
+            }
+            
+            selectedNumbers.forEach(num => {
+                 reservedNumbers.add(num);
             });
             
-            selectedNumber = number;
-            event.target.classList.add('selected');
-            
-            document.getElementById('selectedNumber').textContent = number.toString().padStart(2, '0');
-            document.getElementById('numbersContainer').style.display = 'none';
-            document.getElementById('paymentSection').classList.add('show');
+            document.getElementById('amount').value = currentBundle.price.toFixed(2);
+            updateSelectedNumbersDisplay();
+            showPaymentScreen();
+        }
+        
+        function showPaymentScreen() {
+             document.getElementById('numbersContainer').style.display = 'none';
+             document.getElementById('bundlesSection').style.display = 'none';
+             document.getElementById('paymentSection').classList.add('show');
+             // Atualiza a cor dos botões para laranja APENAS se estiver em modo de seleção de pacote manual
+             if (isManualSelection) {
+                 generateNumbers(); 
+             }
+             saveState();
+        }
+
+        function updateSelectedNumbersDisplay() {
+            const display = document.getElementById('selectedNumbers');
+            if (selectedNumbers.length > 0) {
+                display.textContent = selectedNumbers.map(n => n.toString().padStart(2, '0')).join(', ');
+            } else {
+                display.textContent = '-';
+            }
         }
 
         function generatePix() {
             const amount = parseFloat(document.getElementById('amount').value);
-            
-            if (isNaN(amount) || amount < minAmount) {
-                alert(`⚠️ Por favor, insira um valor mínimo de R$ ${minAmount.toFixed(2).replace('.', ',')}`);
-                return;
+
+            if (isManualSelection) {
+                if (selectedNumbers.length !== currentBundle.num) {
+                    alert(`⚠️ Por favor, selecione exatamente ${currentBundle.num} números.`);
+                    return;
+                }
+                if (amount < currentBundle.price) {
+                    alert(`⚠️ O valor mínimo para este pacote é R$ ${currentBundle.price.toFixed(2).replace('.', ',')}.`);
+                    return;
+                }
+            } else {
+                if (isNaN(amount) || amount < minAmount) {
+                    alert(`⚠️ Por favor, insira um valor mínimo de R$ ${minAmount.toFixed(2).replace('.', ',')}`);
+                    return;
+                }
+                if (selectedNumbers.length === 0) {
+                    alert('⚠️ Por favor, selecione pelo menos um número.');
+                    return;
+                }
             }
             
             document.getElementById('pixAmount').textContent = amount.toFixed(2).replace('.', ',');
-            document.getElementById('pixNumber').textContent = selectedNumber.toString().padStart(2, '0');
+            document.getElementById('pixNumbers').textContent = selectedNumbers.map(n => n.toString().padStart(2, '0')).join(', ');
             document.getElementById('pixKeyValue').textContent = pixKey;
             
             generateContactButtons();
@@ -1393,7 +1857,7 @@
 
             const message = `Olá! Gostaria de participar da rifa solidária.\n\n` +
                           `💰 Valor: R$ ${parseFloat(document.getElementById('amount').value).toFixed(2).replace('.', ',')}\n` +
-                          `🎲 Número escolhido: ${selectedNumber.toString().padStart(2, '0')}\n\n` +
+                          `🎲 Número(s) escolhido(s): ${selectedNumbers.map(n => n.toString().padStart(2, '0')).join(', ')}\n\n` +
                           `Segue o comprovante.`;
 
             whatsappContacts.forEach(contact => {
@@ -1414,7 +1878,6 @@
                 container.appendChild(link);
             });
 
-            // Fallback para caso não haja contatos
             if (whatsappContacts.length === 0 && emailContacts.length === 0) {
                 container.innerHTML = '<p>⚠️ Nenhum contato para envio de comprovante foi configurado.</p>';
             }
@@ -1535,6 +1998,33 @@
                 alert('⚠️ Por favor, selecione uma data e hora válidas.');
             }
         }
+        
+        function updateRaffleDescription() {
+            const newDescription = document.getElementById('adminRaffleDescription').value.trim();
+            raffleDescription = newDescription;
+            saveSettings();
+            displayRaffleDescription();
+            alert('✅ Descrição da rifa atualizada!');
+        }
+        
+        function clearRaffleDescription() {
+            if (confirm('Tem certeza que deseja limpar a descrição da rifa?')) {
+                raffleDescription = "";
+                document.getElementById('adminRaffleDescription').value = "";
+                saveSettings();
+                displayRaffleDescription();
+                alert('✅ Descrição da rifa limpa com sucesso!');
+            }
+        }
+
+        function updateSubtitle() {
+            const newSubtitle = document.getElementById('adminSubtitle').value.trim();
+            customSubtitle = newSubtitle;
+            saveSettings();
+            displaySubtitle();
+            alert('✅ Subtítulo atualizado com sucesso!');
+            document.getElementById('adminSubtitle').value = '';
+        }
 
         function addNumbers() {
             const numbersToAdd = parseInt(document.getElementById('numbersAmount').value);
@@ -1561,8 +2051,8 @@
             }
             
             for (let i = maxNumber; i > maxNumber - numbersToRemove; i--) {
-                if (takenNumbers.has(i)) {
-                    alert(`Não é possível remover o número ${i} porque ele já foi vendido. Por favor, remova os participantes manualmente antes de diminuir a quantidade de números.`);
+                if (takenNumbers.has(i) || reservedNumbers.has(i)) {
+                    alert(`Não é possível remover o número ${i} porque ele já foi vendido ou reservado. Por favor, remova os participantes manualmente antes de diminuir a quantidade de números.`);
                     return;
                 }
             }
@@ -1572,6 +2062,63 @@
             alert(`✅ ${numbersToRemove} números foram removidos. O total agora é ${maxNumber}.`);
             saveState();
         }
+        
+        function addBundle() {
+            const num = parseInt(document.getElementById('newBundleNumbers').value);
+            const price = parseFloat(document.getElementById('newBundlePrice').value);
+            
+            if (isNaN(num) || num <= 0 || isNaN(price) || price <= 0) {
+                alert('Por favor, insira valores válidos para números e preço.');
+                return;
+            }
+            
+            if (bundles.some(b => b.num === num)) {
+                alert('Já existe um pacote com este número de bilhetes. Por favor, edite-o ou adicione outro com uma quantidade diferente.');
+                return;
+            }
+            
+            bundles.push({ num, price });
+            saveBundles();
+            loadAdminSettings();
+            alert('✅ Pacote adicionado com sucesso!');
+        }
+
+        function removeBundle(index) {
+            if (confirm('Tem certeza que deseja remover este pacote?')) {
+                bundles.splice(index, 1);
+                saveBundles();
+                loadAdminSettings();
+            }
+        }
+
+        function saveBundles() {
+            localStorage.setItem('raffleBundles', JSON.stringify(bundles));
+            generateNumbers();
+        }
+        
+        function loadBundles() {
+            const savedBundles = localStorage.getItem('raffleBundles');
+            if (savedBundles) {
+                bundles = JSON.parse(savedBundles);
+            }
+        }
+
+        function toggleFeature(featureName) {
+            features[featureName] = !features[featureName];
+            saveSettings();
+            updateAdminSettingsToggles();
+            if (featureName === 'customSubtitlesEnabled') {
+                displaySubtitle();
+                loadAdminSettings();
+            }
+            if (featureName === 'bundlesEnabled') {
+                generateNumbers();
+            }
+            if (featureName === 'randomWinnerDrawEnabled') {
+                document.getElementById('drawWinnerBtn').style.display = features.randomWinnerDrawEnabled ? 'block' : 'none';
+                document.getElementById('winnerDisplay').style.display = 'none';
+            }
+        }
 
         function saveSettings() {
             const settings = {
@@ -1580,7 +2127,9 @@
                 emailContacts: emailContacts,
                 minAmount: minAmount,
                 raffleEndDateTime: raffleEndDateTime,
-                countdownEnabled: countdownEnabled
+                raffleDescription: raffleDescription,
+                customSubtitle: customSubtitle,
+                features: features
             };
             localStorage.setItem('raffleSettings', JSON.stringify(settings));
         }
@@ -1594,7 +2143,11 @@
                 emailContacts = settings.emailContacts || emailContacts;
                 minAmount = settings.minAmount || minAmount;
                 raffleEndDateTime = settings.raffleEndDateTime || raffleEndDateTime;
-                countdownEnabled = settings.hasOwnProperty('countdownEnabled') ? settings.countdownEnabled : true;
+                raffleDescription = settings.raffleDescription || "";
+                customSubtitle = settings.customSubtitle || customSubtitle;
+                if (settings.features) {
+                    features = settings.features;
+                }
                 
                 if (document.getElementById('pixKeyValue')) {
                     document.getElementById('pixKeyValue').textContent = pixKey;
@@ -1612,17 +2165,19 @@
                     document.getElementById('numbersAmount').value = maxNumber;
                 }
             }
+            displayRaffleDescription();
+            displaySubtitle();
         }
 
         function backToNumbers() {
             document.getElementById('paymentSection').classList.remove('show');
-            document.getElementById('numbersContainer').style.display = 'block';
             document.getElementById('pixInfo').classList.remove('show');
             
-            document.querySelectorAll('.number-btn.selected').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            selectedNumber = null;
+            selectedNumbers = [];
+            reservedNumbers.clear(); // Limpa a reserva dos números ao voltar
+            currentBundle = null;
+            isManualSelection = false;
+            generateNumbers();
         }
 
         function editTitle() {
@@ -1631,8 +2186,8 @@
             document.getElementById('titleModal').style.display = 'block';
         }
 
-        function closeModal() {
-            document.getElementById('titleModal').style.display = 'none';
+        function closeModal(modalId = 'titleModal') {
+            document.getElementById(modalId).style.display = 'none';
         }
 
         function saveTitle() {
@@ -1666,6 +2221,7 @@
                 updateAdminContent();
                 updateAdminStats();
                 loadAdminSettings();
+                generateManualNumbers();
             } else {
                 alert('❌ Senha incorreta!');
             }
@@ -1676,7 +2232,8 @@
             document.getElementById('adminMinAmount').placeholder = `Atual: ${minAmount.toFixed(2)}`;
             document.getElementById('numbersAmount').value = maxNumber;
             document.getElementById('raffleDateTime').value = raffleEndDateTime;
-            updateCountdownToggleText();
+            document.getElementById('adminRaffleDescription').value = raffleDescription;
+            document.getElementById('adminSubtitle').value = customSubtitle;
 
             const whatsappList = document.getElementById('whatsappList');
             whatsappList.innerHTML = '';
@@ -1703,6 +2260,47 @@
                 li.appendChild(removeBtn);
                 emailList.appendChild(li);
             });
+            
+            updateAdminSettingsToggles();
+            
+            const bundleList = document.getElementById('bundleList');
+            bundleList.innerHTML = '';
+            bundles.forEach((b, index) => {
+                const li = document.createElement('li');
+                li.className = 'bundle-input-group';
+                li.innerHTML = `
+                    <span>${b.num} números por R$ ${b.price.toFixed(2).replace('.', ',')}</span>
+                    <button class="remove-bundle-btn" onclick="removeBundle(${index})">Remover</button>
+                `;
+                bundleList.appendChild(li);
+            });
+        }
+
+        function updateAdminSettingsToggles() {
+            const toggleElements = {
+                'bundlesEnabled': document.getElementById('bundlesToggle'),
+                'customSubtitlesEnabled': document.getElementById('customSubtitleToggle'),
+                'randomWinnerDrawEnabled': document.getElementById('winnerDrawToggle'),
+                'autoNotificationsEnabled': document.getElementById('autoNotificationsToggle'),
+                'countdownEnabled': document.getElementById('countdownToggle')
+            };
+
+            for (const feature in toggleElements) {
+                if (toggleElements[feature]) {
+                    if (features[feature]) {
+                        toggleElements[feature].classList.remove('off');
+                        toggleElements[feature].classList.add('on');
+                        toggleElements[feature].textContent = `Ativado`;
+                    } else {
+                        toggleElements[feature].classList.remove('on');
+                        toggleElements[feature].classList.add('off');
+                        toggleElements[feature].textContent = `Desativado`;
+                    }
+                }
+            }
+
+            document.getElementById('subtitleSection').style.display = features.customSubtitlesEnabled ? 'block' : 'none';
+            document.getElementById('drawWinnerBtn').style.display = features.randomWinnerDrawEnabled ? 'block' : 'none';
         }
         
         function updateAdminContent() {
@@ -1715,9 +2313,9 @@
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <span>
-                        <strong>Nº ${p.number.toString().padStart(2, '0')}</strong> - ${p.name} (R$ ${parseFloat(p.amount).toFixed(2).replace('.', ',')})
+                        <strong>Nº ${Array.isArray(p.number) ? p.number.map(n => n.toString().padStart(2,'0')).join(', ') : p.number.toString().padStart(2, '0')}</strong> - ${p.name} (R$ ${parseFloat(p.amount).toFixed(2).replace('.', ',')})
                     </span>
-                    <button class="remove-btn" onclick="removeParticipant(${p.number})">Remover</button>
+                    <button class="remove-btn" onclick="removeParticipant('${JSON.stringify(p.number).replace(/"/g, '')}')">Remover</button>
                 `;
                 list.appendChild(li);
             });
@@ -1725,18 +2323,46 @@
             document.getElementById('totalRaised').textContent = total.toFixed(2).replace('.', ',');
         }
         
+        function generateManualNumbers() {
+            const container = document.getElementById('manualNumbersContainer');
+            container.innerHTML = '';
+            selectedManualNumbers = [];
+            
+            for (let i = 1; i <= maxNumber; i++) {
+                const button = document.createElement('button');
+                button.className = 'admin-number-btn';
+                button.textContent = i.toString().padStart(2, '0');
+                button.onclick = () => toggleManualSelection(i);
+                if (takenNumbers.has(i)) {
+                    button.classList.add('taken');
+                    button.onclick = null;
+                } else if (reservedNumbers.has(i)) {
+                    button.classList.add('reserved');
+                }
+                container.appendChild(button);
+            }
+        }
+        
+        function toggleManualSelection(number) {
+            const index = selectedManualNumbers.indexOf(number);
+            const button = document.querySelector(`#manualNumbersContainer button:nth-child(${number})`);
+            
+            if (index > -1) {
+                selectedManualNumbers.splice(index, 1);
+                button.classList.remove('selected');
+            } else {
+                selectedManualNumbers.push(number);
+                button.classList.add('selected');
+            }
+        }
+
         function addParticipant() {
-            const number = parseInt(document.getElementById('participantNumber').value);
             const name = document.getElementById('participantName').value.trim();
             const amount = parseFloat(document.getElementById('participantAmount').value);
             
-            if (number < 1 || isNaN(number) || number > maxNumber) {
-                alert(`❌ Por favor, insira um número válido entre 1 e ${maxNumber}.`);
+            if (selectedManualNumbers.length === 0) {
+                alert('❌ Por favor, selecione pelo menos um número para confirmar o pagamento.');
                 return;
-            }
-            if (takenNumbers.has(number)) {
-                 alert(`❌ O número ${number} já foi vendido.`);
-                 return;
             }
             if (!name) {
                 alert('❌ Por favor, insira o nome do participante.');
@@ -1747,42 +2373,98 @@
                 return;
             }
             
-            takenNumbers.add(number);
-            participants.push({ number, name, amount });
+            selectedManualNumbers.forEach(n => {
+                reservedNumbers.delete(n);
+                takenNumbers.add(n);
+            });
             
-            document.getElementById('participantNumber').value = '';
+            const numbersToAdd = [...selectedManualNumbers];
+            participants.push({ number: numbersToAdd.length === 1 ? numbersToAdd[0] : numbersToAdd, name, amount });
+            
             document.getElementById('participantName').value = '';
             document.getElementById('participantAmount').value = '';
+            selectedManualNumbers = [];
             
             updateAdminContent();
             generateNumbers();
-            alert(`✅ Participante ${name} adicionado com sucesso para o número ${number}!`);
+            generateManualNumbers();
+            alert(`✅ Participante ${name} adicionado com sucesso para o(s) número(s) ${numbersToAdd.join(', ')}!`);
             saveState();
+
+            if (features.autoNotificationsEnabled && whatsappContacts.length > 0) {
+                 const firstContact = whatsappContacts[0];
+                 const message = `Olá, ${name}! Seu(s) número(s) na rifa solidária é(são): ${numbersToAdd.join(', ')}. Valor: R$ ${amount.toFixed(2).replace('.', ',')}. Agradecemos sua participação!`;
+                 if (confirm(`Deseja enviar a notificação para o WhatsApp do participante?`)) {
+                     window.open(`https://wa.me/${firstContact}?text=${encodeURIComponent(message)}`, '_blank');
+                 }
+             }
         }
         
-        function removeParticipant(number) {
-            if (confirm(`Tem certeza que deseja remover o participante do número ${number}?`)) {
-                takenNumbers.delete(number);
-                participants = participants.filter(p => p.number !== number);
+        function removeParticipant(numberStr) {
+            const numbersToRemove = JSON.parse(numberStr.replace(/'/g, '"'));
+            
+            if (confirm(`Tem certeza que deseja remover o participante do número(s) ${numbersToRemove}?`)) {
+                let numbersArray = Array.isArray(numbersToRemove) ? numbersToRemove : [numbersToRemove];
+                numbersArray.forEach(n => {
+                    takenNumbers.delete(n);
+                    reservedNumbers.delete(n);
+                });
+                participants = participants.filter(p => JSON.stringify(p.number) !== JSON.stringify(numbersToRemove));
                 updateAdminContent();
                 generateNumbers();
-                alert(`✅ Participante do número ${number} removido.`);
+                generateManualNumbers();
+                alert(`✅ Participante do(s) número(s) ${numbersToRemove} removido.`);
                 saveState();
             }
         }
         
         function removeParticipantByInput() {
-            const number = parseInt(document.getElementById('participantNumber').value);
-            if (number < 1 || isNaN(number) || number > maxNumber) {
-                alert(`❌ Por favor, insira um número válido entre 1 e ${maxNumber}.`);
+            const numberInput = document.getElementById('participantNumber').value.trim();
+            const numbersToRemove = numberInput.split(',').map(n => parseInt(n.trim(), 10));
+
+            if (numbersToRemove.some(isNaN) || numbersToRemove.some(n => n < 1 || n > maxNumber)) {
+                alert(`❌ Por favor, insira número(s) válido(s) entre 1 e ${maxNumber}.`);
                 return;
             }
-            if (!takenNumbers.has(number)) {
-                alert(`⚠️ O número ${number} já está disponível.`);
+            if (numbersToRemove.some(n => !takenNumbers.has(n) && !reservedNumbers.has(n))) {
+                alert(`⚠️ Um ou mais números não estão vendidos ou reservados.`);
                 return;
             }
-            removeParticipant(number);
+            
+            numbersToRemove.forEach(n => {
+                takenNumbers.delete(n);
+                reservedNumbers.delete(n);
+                participants = participants.filter(p => {
+                    const participantNumbers = Array.isArray(p.number) ? p.number : [p.number];
+                    return !participantNumbers.includes(n);
+                });
+            });
+
+            updateAdminContent();
+            generateNumbers();
+            generateManualNumbers();
+            alert(`✅ Participante(s) dos números ${numbersToRemove.join(', ')} removido(s).`);
+            saveState();
             document.getElementById('participantNumber').value = '';
+        }
+        
+        function drawWinner() {
+            if (participants.length === 0) {
+                alert('⚠️ Não há participantes para sortear!');
+                return;
+            }
+            if (raffleEnded) {
+                alert('⚠️ A rifa já foi encerrada e o sorteio não pode ser refeito.');
+                return;
+            }
+
+            const winningParticipant = participants[Math.floor(Math.random() * participants.length)];
+            const winnerText = document.getElementById('winnerText');
+            
+            winnerText.innerHTML = `O número sorteado é: **${Array.isArray(winningParticipant.number) ? winningParticipant.number.join(', ') : winningParticipant.number}**<br>Parabéns, **${winningParticipant.name}**!`;
+            
+            document.getElementById('winnerDisplay').style.display = 'block';
+            alert(`🎉 O ganhador é ${winningParticipant.name} com o(s) número(s) ${Array.isArray(winningParticipant.number) ? winningParticipant.number.join(', ') : winningParticipant.number}!`);
         }
 
         function endRaffle() {
@@ -1804,13 +2486,16 @@
             if (confirm('🔄 Tem certeza que deseja reiniciar a rifa? Todos os números vendidos serão liberados.')) {
                 raffleEnded = false;
                 takenNumbers.clear();
+                reservedNumbers.clear();
                 participants = [];
                 maxNumber = 30;
                 document.getElementById('raffleEnded').style.display = 'none';
+                document.getElementById('winnerDisplay').style.display = 'none';
                 document.getElementById('numbersContainer').style.display = 'block';
                 document.getElementById('paymentSection').classList.remove('show');
                 generateNumbers();
                 updateAdminContent();
+                generateManualNumbers();
                 alert('🔄 Rifa reiniciada com sucesso!');
                 saveState();
                 loadSettings();
@@ -1839,6 +2524,7 @@
             doc.text(`Total Arrecadado: R$ ${totalRaised}`, 15, y);
             y += 15;
             
+            doc.setFontSize(12);
             doc.text("Estatísticas de Acesso:", 15, y);
             y += 10;
             doc.setFontSize(10);
@@ -1853,7 +2539,7 @@
             
             const tableColumn = ["Nº", "Nome", "Valor (R$)"];
             const tableRows = participants.map(p => [
-                p.number.toString().padStart(2, '0'),
+                Array.isArray(p.number) ? p.number.join(', ') : p.number.toString().padStart(2, '0'),
                 p.name,
                 p.amount.toFixed(2).replace('.', ',')
             ]);
@@ -1875,6 +2561,7 @@
                 participants: participants,
                 raffleEnded: raffleEnded,
                 takenNumbers: Array.from(takenNumbers),
+                reservedNumbers: Array.from(reservedNumbers),
                 maxNumber: maxNumber
             };
             localStorage.setItem('raffleState', JSON.stringify(state));
@@ -1887,11 +2574,13 @@
                 participants = state.participants || [];
                 raffleEnded = state.raffleEnded || false;
                 takenNumbers = new Set(state.takenNumbers || []);
+                reservedNumbers = new Set(state.reservedNumbers || []);
                 maxNumber = state.maxNumber || 30;
                 
                 if (raffleEnded) {
                     document.getElementById('raffleEnded').style.display = 'block';
                     document.getElementById('numbersContainer').style.display = 'none';
+                    document.getElementById('bundlesSection').style.display = 'none';
                 }
             }
         }
@@ -1915,8 +2604,13 @@
                     minAmount: minAmount,
                     maxNumber: maxNumber,
                     raffleEndDateTime: raffleEndDateTime,
-                    countdownEnabled: countdownEnabled
-                }
+                    raffleDescription: raffleDescription,
+                    customSubtitle: customSubtitle,
+                    features: features,
+                    bundles: bundles
+                },
+                takenNumbers: Array.from(takenNumbers),
+                reservedNumbers: Array.from(reservedNumbers)
             };
             
             const dataStr = JSON.stringify(exportData, null, 2);
@@ -1946,8 +2640,8 @@
                         };
                         
                         participants = importedData.participants || [];
-                        takenNumbers.clear();
-                        participants.forEach(p => takenNumbers.add(p.number));
+                        takenNumbers = new Set(importedData.takenNumbers || []);
+                        reservedNumbers = new Set(importedData.reservedNumbers || []);
                         
                         if (importedData.raffleTitle) {
                             document.getElementById('mainTitle').textContent = importedData.raffleTitle;
@@ -1962,17 +2656,23 @@
                             minAmount = importedData.settings.minAmount || minAmount;
                             maxNumber = importedData.settings.maxNumber || 30;
                             raffleEndDateTime = importedData.settings.raffleEndDateTime || raffleEndDateTime;
-                            countdownEnabled = importedData.settings.hasOwnProperty('countdownEnabled') ? importedData.settings.countdownEnabled : true;
+                            raffleDescription = importedData.settings.raffleDescription || "";
+                            customSubtitle = importedData.settings.customSubtitle || customSubtitle;
+                            features = importedData.settings.features || features;
+                            bundles = importedData.settings.bundles || bundles;
                             saveSettings();
+                            saveBundles();
                         }
                         
                         saveTrackingData();
                         saveState();
                         
                         loadSettings();
+                        loadBundles();
                         updateAdminContent();
                         updateAdminStats();
                         generateNumbers();
+                        generateManualNumbers();
                         startCountdown();
 
                         document.getElementById('raffleEnded').style.display = raffleEnded ? 'block' : 'none';
@@ -1991,6 +2691,7 @@
         window.onclick = function(event) {
             const titleModal = document.getElementById('titleModal');
             const adminModal = document.getElementById('adminModal');
+            const chooseNumbersModal = document.getElementById('chooseNumbersModal');
             
             if (event.target === titleModal) {
                 closeModal();
@@ -1998,11 +2699,104 @@
             if (event.target === adminModal) {
                 closeAdminPanel();
             }
+            if (event.target === chooseNumbersModal) {
+                closeModal('chooseNumbersModal');
+            }
+        }
+        
+        let stopwatchInterval;
+
+        function updateStopwatchDisplay() {
+            const display = document.getElementById('stopwatchDisplay');
+            if (display) {
+                let timeInSeconds = Math.floor(stopwatch.elapsedTime / 1000);
+                const hours = Math.floor(timeInSeconds / 3600);
+                timeInSeconds %= 3600;
+                const minutes = Math.floor(timeInSeconds / 60);
+                const seconds = timeInSeconds % 60;
+
+                const formattedTime = [
+                    String(hours).padStart(2, '0'),
+                    String(minutes).padStart(2, '0'),
+                    String(seconds).padStart(2, '0')
+                ].join(':');
+
+                display.textContent = formattedTime;
+            }
+        }
+
+        function startStopwatch() {
+            if (!stopwatch.isRunning) {
+                stopwatch.isRunning = true;
+                stopwatch.startTime = Date.now() - stopwatch.elapsedTime;
+                stopwatchInterval = setInterval(() => {
+                    stopwatch.elapsedTime = Date.now() - stopwatch.startTime;
+                    updateStopwatchDisplay();
+                    saveStopwatchState();
+                }, 1000);
+                saveStopwatchState();
+            }
+        }
+
+        function pauseStopwatch() {
+            if (stopwatch.isRunning) {
+                stopwatch.isRunning = false;
+                clearInterval(stopwatchInterval);
+                saveStopwatchState();
+            }
+        }
+
+        function resetStopwatch() {
+            pauseStopwatch();
+            stopwatch.elapsedTime = 0;
+            stopwatch.startTime = null;
+            updateStopwatchDisplay();
+            saveStopwatchState();
+        }
+
+        function saveStopwatchState() {
+            localStorage.setItem('stopwatchState', JSON.stringify(stopwatch));
+        }
+
+        function loadStopwatchState() {
+            const savedState = localStorage.getItem('stopwatchState');
+            if (savedState) {
+                stopwatch = JSON.parse(savedState);
+                if (stopwatch.isRunning) {
+                    stopwatch.startTime = Date.now() - stopwatch.elapsedTime;
+                    startStopwatch();
+                } else {
+                    updateStopwatchDisplay();
+                }
+            }
+        }
+
+        function displayRaffleDescription() {
+            const descriptionSection = document.getElementById('raffleDescriptionSection');
+            const descriptionText = document.getElementById('raffleDescriptionText');
+            
+            if (raffleDescription && raffleDescription.trim() !== '') {
+                descriptionText.textContent = raffleDescription;
+                descriptionSection.style.display = 'block';
+            } else {
+                descriptionSection.style.display = 'none';
+            }
+        }
+
+        function displaySubtitle() {
+            const subtitleElement = document.getElementById('mainSubtitle');
+            if (features.customSubtitlesEnabled) {
+                subtitleElement.textContent = customSubtitle;
+            } else {
+                subtitleElement.textContent = "Participe e ajude uma boa causa!";
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            loadBundles();
             loadSettings();
             loadState();
+            loadStopwatchState();
             generateNumbers();
             trackVisit();
             startCountdown();
