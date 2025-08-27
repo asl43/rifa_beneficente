@@ -225,6 +225,36 @@
             border-color: #74b9ff;
         }
 
+        .contact-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        
+        .contact-link {
+            text-decoration: none;
+            color: white;
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .contact-link.email {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .contact-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
         .pix-button {
             width: 100%;
             background: linear-gradient(135deg, #00b894, #00a085);
@@ -329,26 +359,6 @@
             gap: 10px;
             justify-content: flex-end;
             margin-top: 20px;
-        }
-
-        .whatsapp-btn {
-            display: block;
-            width: 100%;
-            background: linear-gradient(135deg, #25d366, #128c7e);
-            color: white;
-            text-decoration: none;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin: 15px 0;
-            transition: all 0.3s ease;
-        }
-
-        .whatsapp-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.4);
         }
 
         .admin-panel {
@@ -617,14 +627,6 @@
         .device-desktop { color: #0984e3; }
         .device-tablet { color: #e17055; }
 
-        .contact-info {
-            background: #e8f4fd;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 5px 0;
-            font-size: 0.8rem;
-        }
-
         .clear-data-btn {
             background: #e74c3c;
             color: white;
@@ -639,18 +641,6 @@
             background: #c0392b;
         }
 
-        .visitor-form {
-            display: none;
-        }
-
-        .form-group {
-            display: none;
-        }
-
-        .submit-contact-btn {
-            display: none;
-        }
-        
         .admin-settings-section {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -670,15 +660,36 @@
             padding: 8px;
         }
         
-        .add-numbers-section {
+        .number-management-section {
             display: flex;
             flex-direction: column;
             gap: 10px;
             margin-bottom: 15px;
         }
-        
-        .add-numbers-section input {
-            width: 100%;
+
+        .contact-list {
+            margin-top: 10px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .contact-list li {
+            background: white;
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .contact-list li .remove-contact-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         @media (max-width: 768px) {
@@ -792,10 +803,10 @@
                         <button class="copy-btn" onclick="copyPixKey()">📋 Copiar</button>
                         <button class="edit-btn" onclick="editPixKey()" style="margin-left: 5px;">✏️ Editar</button>
                     </div>
-                    <p><small>⚠️ Após o pagamento, envie o comprovante via WhatsApp!</small></p>
-                    <a href="#" id="whatsappLink" class="whatsapp-btn" target="_blank">
-                        📱 Enviar Comprovante via WhatsApp
-                    </a>
+                    <p><small>⚠️ Após o pagamento, envie o comprovante.</small></p>
+                    <h3>Escolha como deseja enviar o comprovante:</h3>
+                    <div class="contact-options" id="contactOptions">
+                        </div>
                 </div>
 
                 <button class="back-btn" onclick="backToNumbers()">⬅️ Voltar para Seleção</button>
@@ -875,13 +886,32 @@
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 5px; font-weight: bold;">WhatsApp (apenas números):</label>
-                            <input type="text" id="adminWhatsApp" class="admin-input" style="width: 100%;" placeholder="5592999999999">
-                            <button class="save-btn" onclick="updateWhatsApp()">Salvar WhatsApp</button>
+                            <input type="text" id="addWhatsApp" class="admin-input" style="width: 100%;" placeholder="5592999999999">
+                            <button class="save-btn" onclick="addWhatsAppContact()">Adicionar</button>
+                            <ul id="whatsappList" class="contact-list"></ul>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">E-mail do Organizador:</label>
+                            <input type="email" id="addEmail" class="admin-input" style="width: 100%;" placeholder="email@exemplo.com">
+                            <button class="save-btn" onclick="addEmailContact()">Adicionar</button>
+                            <ul id="emailList" class="contact-list"></ul>
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 5px; font-weight: bold;">Valor Mínimo (R$):</label>
                             <input type="number" id="adminMinAmount" class="admin-input" min="0.01" step="0.01" style="width: 100%;" placeholder="Ex: 5.00">
                             <button class="save-btn" onclick="updateMinAmount()">Salvar Valor</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>✨ Gerenciar Números</h3>
+                    <div class="number-management-section">
+                        <label for="numbersAmount">Ajustar quantidade de números disponíveis:</label>
+                        <input type="number" id="numbersAmount" min="1" value="30" placeholder="Ex: 50">
+                        <div style="display: flex; gap: 10px;">
+                            <button class="save-btn" onclick="addNumbers()" style="flex: 1;">Adicionar</button>
+                            <button class="cancel-btn" onclick="removeNumbers()" style="flex: 1;">Remover</button>
                         </div>
                     </div>
                 </div>
@@ -893,15 +923,6 @@
                     <input type="number" id="participantAmount" class="admin-input amount" min="1" step="0.01" placeholder="Valor (R$)">
                     <button class="add-participant-btn" onclick="addParticipant()">Marcar como Vendido</button>
                     <button class="reset-number-btn" onclick="removeParticipantByInput()">Marcar como Disponível</button>
-                </div>
-                
-                <div class="admin-section">
-                    <h3>✨ Adicionar Números</h3>
-                    <div class="add-numbers-section">
-                        <label for="numbersToAdd">Quantos números deseja adicionar?</label>
-                        <input type="number" id="numbersToAdd" min="1" value="30" placeholder="Ex: 20">
-                        <button class="save-btn" onclick="addMoreNumbers()">Adicionar Números</button>
-                    </div>
                 </div>
                 
                 <div class="admin-section">
@@ -959,14 +980,13 @@
         let raffleEnded = false;
         let participants = [];
         const adminPassword = "admin123";
-        let maxNumber = 30; // Inicia com 30 números
+        let maxNumber = 30;
 
-        // Configurações editáveis
         let pixKey = "7bfe6310-8a37-4178-8ba8-8fd532dfa50b";
-        let whatsappNumber = "5592993216959";
+        let whatsappContacts = ["5592993216959"];
+        let emailContacts = [];
         let minAmount = 1.00;
 
-        // Sistema de rastreamento de visitantes
         let trackingData = {
             totalVisits: 0,
             uniqueVisitors: new Set(),
@@ -1229,15 +1249,42 @@
             document.getElementById('pixNumber').textContent = selectedNumber.toString().padStart(2, '0');
             document.getElementById('pixKeyValue').textContent = pixKey;
             
-            const message = `Olá! Gostaria de participar da rifa solidária.\n\n` +
-                          `💰 Valor: R$ ${amount.toFixed(2).replace('.', ',')}\n` +
-                          `🎲 Número escolhido: ${selectedNumber.toString().padStart(2, '0')}\n\n` +
-                          `Segue o comprovante.`;
-            
-            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-            document.getElementById('whatsappLink').href = whatsappUrl;
+            generateContactButtons();
             
             document.getElementById('pixInfo').classList.add('show');
+        }
+
+        function generateContactButtons() {
+            const container = document.getElementById('contactOptions');
+            container.innerHTML = '';
+
+            const message = `Olá! Gostaria de participar da rifa solidária.\n\n` +
+                          `💰 Valor: R$ ${parseFloat(document.getElementById('amount').value).toFixed(2).replace('.', ',')}\n` +
+                          `🎲 Número escolhido: ${selectedNumber.toString().padStart(2, '0')}\n\n` +
+                          `Segue o comprovante.`;
+
+            whatsappContacts.forEach(contact => {
+                const link = document.createElement('a');
+                link.href = `https://wa.me/${contact}?text=${encodeURIComponent(message)}`;
+                link.className = 'contact-link whatsapp';
+                link.target = '_blank';
+                link.innerHTML = '<span><i class="fab fa-whatsapp"></i> WhatsApp</span>';
+                container.appendChild(link);
+            });
+
+            emailContacts.forEach(contact => {
+                const link = document.createElement('a');
+                link.href = `mailto:${contact}?subject=Comprovante de Participação Rifa&body=${encodeURIComponent(message)}`;
+                link.className = 'contact-link email';
+                link.target = '_blank';
+                link.innerHTML = '<span><i class="far fa-envelope"></i> E-mail</span>';
+                container.appendChild(link);
+            });
+
+            // Fallback para caso não haja contatos
+            if (whatsappContacts.length === 0 && emailContacts.length === 0) {
+                container.innerHTML = '<p>⚠️ Nenhum contato para envio de comprovante foi configurado.</p>';
+            }
         }
         
         async function copyPixKey() {
@@ -1282,17 +1329,48 @@
             }
         }
 
-        function updateWhatsApp() {
-            const newWhatsApp = document.getElementById('adminWhatsApp').value.trim();
-            if (newWhatsApp && /^\d+$/.test(newWhatsApp)) {
-                whatsappNumber = newWhatsApp;
-                saveSettings();
-                alert('✅ WhatsApp atualizado com sucesso!');
-                document.getElementById('adminWhatsApp').value = '';
-                loadAdminSettings();
+        function addWhatsAppContact() {
+            const newContact = document.getElementById('addWhatsApp').value.trim();
+            if (newContact && /^\d+$/.test(newContact)) {
+                if (!whatsappContacts.includes(newContact)) {
+                    whatsappContacts.push(newContact);
+                    document.getElementById('addWhatsApp').value = '';
+                    saveSettings();
+                    loadAdminSettings();
+                } else {
+                    alert('⚠️ Este número já foi adicionado.');
+                }
             } else {
-                alert('⚠️ Por favor, digite apenas números (ex: 5592999999999).');
+                alert('⚠️ Por favor, digite apenas números válidos.');
             }
+        }
+        
+        function removeWhatsAppContact(contact) {
+            whatsappContacts = whatsappContacts.filter(c => c !== contact);
+            saveSettings();
+            loadAdminSettings();
+        }
+
+        function addEmailContact() {
+            const newEmail = document.getElementById('addEmail').value.trim();
+            if (newEmail && /^\S+@\S+\.\S+$/.test(newEmail)) {
+                if (!emailContacts.includes(newEmail)) {
+                    emailContacts.push(newEmail);
+                    document.getElementById('addEmail').value = '';
+                    saveSettings();
+                    loadAdminSettings();
+                } else {
+                    alert('⚠️ Este e-mail já foi adicionado.');
+                }
+            } else {
+                alert('⚠️ Por favor, digite um e-mail válido.');
+            }
+        }
+        
+        function removeEmailContact(email) {
+            emailContacts = emailContacts.filter(c => c !== email);
+            saveSettings();
+            loadAdminSettings();
         }
         
         function updateMinAmount() {
@@ -1311,8 +1389,8 @@
             }
         }
         
-        function addMoreNumbers() {
-            const numbersToAdd = parseInt(document.getElementById('numbersToAdd').value);
+        function addNumbers() {
+            const numbersToAdd = parseInt(document.getElementById('numbersAmount').value);
             if (isNaN(numbersToAdd) || numbersToAdd <= 0) {
                 alert('Por favor, insira um número válido maior que 0.');
                 return;
@@ -1323,12 +1401,38 @@
             saveState();
         }
 
+        function removeNumbers() {
+            const numbersToRemove = parseInt(document.getElementById('numbersAmount').value);
+            if (isNaN(numbersToRemove) || numbersToRemove <= 0) {
+                alert('Por favor, insira um número válido maior que 0.');
+                return;
+            }
+
+            if (maxNumber - numbersToRemove < 0) {
+                alert('Não é possível remover mais números do que o total atual.');
+                return;
+            }
+            
+            // Check if any numbers to be removed are already taken
+            for (let i = maxNumber; i > maxNumber - numbersToRemove; i--) {
+                if (takenNumbers.has(i)) {
+                    alert(`Não é possível remover o número ${i} porque ele já foi vendido. Por favor, remova os participantes manualmente antes de diminuir a quantidade de números.`);
+                    return;
+                }
+            }
+            
+            maxNumber -= numbersToRemove;
+            generateNumbers();
+            alert(`✅ ${numbersToRemove} números foram removidos. O total agora é ${maxNumber}.`);
+            saveState();
+        }
+
         function saveSettings() {
             const settings = {
                 pixKey: pixKey,
-                whatsappNumber: whatsappNumber,
-                minAmount: minAmount,
-                maxNumber: maxNumber // Salvar o limite atual de números
+                whatsappContacts: whatsappContacts,
+                emailContacts: emailContacts,
+                minAmount: minAmount
             };
             localStorage.setItem('raffleSettings', JSON.stringify(settings));
         }
@@ -1338,9 +1442,9 @@
             if (saved) {
                 const settings = JSON.parse(saved);
                 pixKey = settings.pixKey || pixKey;
-                whatsappNumber = settings.whatsappNumber || whatsappNumber;
+                whatsappContacts = settings.whatsappContacts || whatsappContacts;
+                emailContacts = settings.emailContacts || emailContacts;
                 minAmount = settings.minAmount || minAmount;
-                maxNumber = settings.maxNumber || maxNumber;
                 
                 if (document.getElementById('pixKeyValue')) {
                     document.getElementById('pixKeyValue').textContent = pixKey;
@@ -1353,6 +1457,9 @@
                 }
                 if (document.getElementById('amount')) {
                      document.getElementById('amount').min = minAmount.toFixed(2);
+                }
+                if (document.getElementById('numbersAmount')) {
+                    document.getElementById('numbersAmount').value = maxNumber;
                 }
             }
         }
@@ -1416,8 +1523,34 @@
 
         function loadAdminSettings() {
             document.getElementById('adminPixKey').placeholder = `Atual: ${pixKey}`;
-            document.getElementById('adminWhatsApp').placeholder = `Atual: ${whatsappNumber}`;
             document.getElementById('adminMinAmount').placeholder = `Atual: ${minAmount.toFixed(2)}`;
+            document.getElementById('numbersAmount').value = maxNumber;
+
+            const whatsappList = document.getElementById('whatsappList');
+            whatsappList.innerHTML = '';
+            whatsappContacts.forEach(contact => {
+                const li = document.createElement('li');
+                li.textContent = contact;
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remover';
+                removeBtn.className = 'remove-contact-btn';
+                removeBtn.onclick = () => removeWhatsAppContact(contact);
+                li.appendChild(removeBtn);
+                whatsappList.appendChild(li);
+            });
+
+            const emailList = document.getElementById('emailList');
+            emailList.innerHTML = '';
+            emailContacts.forEach(email => {
+                const li = document.createElement('li');
+                li.textContent = email;
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remover';
+                removeBtn.className = 'remove-contact-btn';
+                removeBtn.onclick = () => removeEmailContact(email);
+                li.appendChild(removeBtn);
+                emailList.appendChild(li);
+            });
         }
         
         function updateAdminContent() {
@@ -1518,7 +1651,7 @@
                 raffleEnded = false;
                 takenNumbers.clear();
                 participants = [];
-                maxNumber = 30; // Reinicia para o padrão de 30
+                maxNumber = 30;
                 document.getElementById('raffleEnded').style.display = 'none';
                 document.getElementById('numbersContainer').style.display = 'block';
                 document.getElementById('paymentSection').classList.remove('show');
@@ -1621,7 +1754,8 @@
                 raffleTitle: document.getElementById('mainTitle').textContent,
                 settings: {
                     pixKey: pixKey,
-                    whatsappNumber: whatsappNumber,
+                    whatsappContacts: whatsappContacts,
+                    emailContacts: emailContacts,
                     minAmount: minAmount,
                     maxNumber: maxNumber
                 }
@@ -1665,9 +1799,10 @@
 
                         if (importedData.settings) {
                             pixKey = importedData.settings.pixKey || pixKey;
-                            whatsappNumber = importedData.settings.whatsappNumber || whatsappNumber;
+                            whatsappContacts = importedData.settings.whatsappContacts || whatsappContacts;
+                            emailContacts = importedData.settings.emailContacts || emailContacts;
                             minAmount = importedData.settings.minAmount || minAmount;
-                            maxNumber = importedData.settings.maxNumber || maxNumber;
+                            maxNumber = importedData.settings.maxNumber || 30;
                             saveSettings();
                         }
                         
