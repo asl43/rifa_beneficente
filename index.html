@@ -6,6 +6,7 @@
     <title>Rifa Solidária</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* Estilos existentes... */
         * {
             margin: 0;
             padding: 0;
@@ -180,7 +181,6 @@
 
         .number-btn.reserved {
             background: linear-gradient(135deg, #ff9f43, #ff6b6b);
-            animation: pulse 1s infinite;
         }
         
         .number-btn.taken {
@@ -190,6 +190,17 @@
         }
 
         .number-btn.taken:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .number-btn.paid {
+            background: #e74c3c;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .number-btn.paid:hover {
             transform: none;
             box-shadow: none;
         }
@@ -259,18 +270,18 @@
             margin-bottom: 20px;
         }
 
-        .amount-input-group {
+        .input-group {
             margin-bottom: 25px;
         }
 
-        .amount-input-group label {
+        .input-group label {
             display: block;
             margin-bottom: 10px;
             font-weight: bold;
             color: #2d3436;
         }
 
-        .amount-input {
+        .input-group input {
             width: 100%;
             padding: 15px;
             border: 2px solid #ddd;
@@ -279,7 +290,7 @@
             transition: border-color 0.3s ease;
         }
 
-        .amount-input:focus {
+        .input-group input:focus {
             outline: none;
             border-color: #74b9ff;
         }
@@ -500,16 +511,22 @@
             background: #ff9f43;
             color: white;
         }
+        
+        .admin-number-btn.available {
+            background: #00b894;
+            color: white;
+        }
 
         .admin-number-btn.taken {
             background: #e74c3c;
             color: white;
         }
-
-        .admin-number-btn.available {
-            background: #00b894;
-            color: white;
+        
+        .admin-number-btn.selected {
+            background: #ff9f43;
+            animation: pulse 1s infinite;
         }
+
 
         .admin-controls {
             display: flex;
@@ -888,8 +905,68 @@
         }
         
         .manual-selection-container .admin-number-btn.selected {
-            background: #00b894;
+            background: #ff9f43;
         }
+
+        .admin-action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .admin-action-btn.paid {
+            background: #e74c3c; /* Red */
+        }
+        .admin-action-btn.available {
+            background: #00b894; /* Green */
+        }
+
+        /* --- Estilos para a animação de sorteio --- */
+        .winner-animation {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+
+        .winner-animation h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .winner-number {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #ffeb3b;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
+            animation: rollNumbers 0.1s infinite;
+        }
+
+        @keyframes rollNumbers {
+            0% { transform: translateY(0); opacity: 1; }
+            50% { transform: translateY(-5px); opacity: 0.8; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .winner-info {
+            font-size: 1.5rem;
+            margin-top: 15px;
+            animation: fadeIn 1s forwards;
+            opacity: 0;
+            display: none;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        /* --- Fim dos novos estilos --- */
 
         @media (max-width: 768px) {
             #mainTitle {
@@ -956,7 +1033,7 @@
                 <button class="edit-btn" onclick="editTitle()">✏️ Editar</button>
             </div>
             <p class="subtitle" id="mainSubtitle">Participe e ajude uma boa causa!</p>
-            
+
             <div id="countdownContainer">
                 <span>SORTEIO EM:</span>
                 <div id="countdown">
@@ -977,6 +1054,12 @@
                         <span>Segundos</span>
                     </div>
                 </div>
+            </div>
+
+            <div class="winner-animation" id="winnerAnimation">
+                <h2>O Sorteio Começou!</h2>
+                <div class="winner-number" id="winnerNumberDisplay">00</div>
+                <div class="winner-info" id="winnerInfoDisplay"></div>
             </div>
         </div>
 
@@ -1033,7 +1116,12 @@
                     Número(s) selecionado(s): <span id="selectedNumbers">-</span>
                 </div>
 
-                <div class="amount-input-group">
+                <div class="input-group">
+                    <label for="participantName">Seu Nome:</label>
+                    <input type="text" id="participantName" class="amount-input" placeholder="Digite seu nome completo">
+                </div>
+                
+                <div class="input-group">
                     <label for="amount"><span id="amountLabel">💰 Valor da Contribuição (mínimo R$ 1,00):</span></label>
                     <input type="number" id="amount" class="amount-input" min="1" step="0.01" placeholder="Digite o valor em reais">
                 </div>
@@ -1044,13 +1132,13 @@
 
                 <div class="pix-info" id="pixInfo">
                     <h3>📱 Informações do PIX</h3>
+                    <p><strong>Nome:</strong> <span id="pixName">-</span></p>
                     <p><strong>Valor:</strong> R$ <span id="pixAmount">0,00</span></p>
                     <p><strong>Número(s) escolhido(s):</strong> <span id="pixNumbers">-</span></p>
                     <p><strong>Chave PIX:</strong></p>
                     <div class="pix-key" id="pixKey">
                         <span id="pixKeyValue">7bfe6310-8a37-4178-8ba8-8fd532dfa50b</span>
                         <button class="copy-btn" onclick="copyPixKey()">📋 Copiar</button>
-                        <button class="edit-btn" onclick="editPixKey()" style="margin-left: 5px;">✏️ Editar</button>
                     </div>
                     <p><small>⚠️ Após o pagamento, envie o comprovante.</small></p>
                     <h3>Escolha como deseja enviar o comprovante:</h3>
@@ -1242,13 +1330,12 @@
 
                 <div class="admin-section" id="manual-management">
                     <h3>✅ Gerenciamento Manual de Vendas</h3>
-                    <p>Clique nos números abaixo para selecionar os que foram pagos:</p>
+                    <p>Clique nos números para alterar o status. Laranja = Reservado, Vermelho = Vendido, Verde = Disponível.</p>
                     <div class="manual-selection-container" id="manualNumbersContainer">
                         </div>
-                    <input type="text" id="participantName" class="admin-input name" placeholder="Nome do Participante">
-                    <input type="number" id="participantAmount" class="admin-input amount" min="1" step="0.01" placeholder="Valor (R$)">
+                    <input type="text" id="participantNameManual" class="admin-input name" placeholder="Nome do Participante">
+                    <input type="number" id="participantAmountManual" class="admin-input amount" min="1" step="0.01" placeholder="Valor (R$)">
                     <button class="add-participant-btn" onclick="addParticipant()">Confirmar Pagamento</button>
-                    <button class="reset-number-btn" onclick="removeParticipantByInput()">Liberar Número(s)</button>
                 </div>
                 
                 <div class="admin-section">
@@ -1320,6 +1407,7 @@
         let reservedNumbers = new Set();
         let raffleEnded = false;
         let participants = [];
+        let pendingParticipants = []; // New array to store pending reservations
         const adminPassword = "admin123";
         let maxNumber = 30;
         
@@ -1695,10 +1783,9 @@
             });
         }
         
-        // CORRIGIDO: Agora a função recebe o botão como parâmetro
         function selectNumber(number, button) {
             if (takenNumbers.has(number) || raffleEnded) return;
-            
+
             if (isManualSelection) {
                 const index = selectedNumbers.indexOf(number);
                 if (index > -1) {
@@ -1714,27 +1801,25 @@
                         alert(`Você já selecionou ${currentBundle.num} números. Remova um para escolher outro.`);
                     }
                 }
-
                 updateSelectedNumbersDisplay();
-
                 if (selectedNumbers.length === currentBundle.num) {
                     document.getElementById('amount').value = currentBundle.price.toFixed(2);
                     showPaymentScreen();
                 }
-
             } else {
+                // Single number selection
                 selectedNumbers = [number];
                 reservedNumbers.clear();
                 reservedNumbers.add(number);
                 
                 document.querySelectorAll('.number-btn').forEach(btn => {
-                    if(btn !== button && !takenNumbers.has(parseInt(btn.textContent, 10))) {
+                    const num = parseInt(btn.textContent, 10);
+                    if (num !== number && !takenNumbers.has(num)) {
                         btn.classList.remove('reserved');
                     }
                 });
 
                 button.classList.add('reserved');
-                
                 document.getElementById('amount').value = minAmount.toFixed(2);
                 updateSelectedNumbersDisplay();
                 showPaymentScreen();
@@ -1766,7 +1851,7 @@
                 document.getElementById('requiredNumbers').textContent = currentBundle.num;
                 document.getElementById('bundlesSection').style.display = 'none';
                 document.getElementById('numbersContainer').style.display = 'block';
-                generateNumbers(); // Redesenha os botões para mostrar o estado inicial de seleção do pacote
+                generateNumbers(); 
             } else {
                 isManualSelection = false;
                 autoSelectNumbers(currentBundle.num);
@@ -1803,10 +1888,7 @@
              document.getElementById('numbersContainer').style.display = 'none';
              document.getElementById('bundlesSection').style.display = 'none';
              document.getElementById('paymentSection').classList.add('show');
-             // Atualiza a cor dos botões para laranja APENAS se estiver em modo de seleção de pacote manual
-             if (isManualSelection) {
-                 generateNumbers(); 
-             }
+             generateNumbers(); 
              saveState();
         }
 
@@ -1820,14 +1902,20 @@
         }
 
         function generatePix() {
+            const name = document.getElementById('participantName').value.trim();
             const amount = parseFloat(document.getElementById('amount').value);
 
+            if (!name) {
+                alert('⚠️ Por favor, digite seu nome para continuar.');
+                return;
+            }
+            
             if (isManualSelection) {
                 if (selectedNumbers.length !== currentBundle.num) {
                     alert(`⚠️ Por favor, selecione exatamente ${currentBundle.num} números.`);
                     return;
                 }
-                if (amount < currentBundle.price) {
+                if (isNaN(amount) || amount < currentBundle.price) {
                     alert(`⚠️ O valor mínimo para este pacote é R$ ${currentBundle.price.toFixed(2).replace('.', ',')}.`);
                     return;
                 }
@@ -1842,22 +1930,34 @@
                 }
             }
             
+            document.getElementById('pixName').textContent = name;
             document.getElementById('pixAmount').textContent = amount.toFixed(2).replace('.', ',');
             document.getElementById('pixNumbers').textContent = selectedNumbers.map(n => n.toString().padStart(2, '0')).join(', ');
             document.getElementById('pixKeyValue').textContent = pixKey;
-            
-            generateContactButtons();
+
+            // Save the pending participant and reserve numbers
+            const participantData = {
+                name: name,
+                amount: amount,
+                numbers: selectedNumbers
+            };
+            pendingParticipants.push(participantData);
+            selectedNumbers.forEach(num => reservedNumbers.add(num));
+            saveState();
+
+            generateContactButtons(name, amount, selectedNumbers);
             
             document.getElementById('pixInfo').classList.add('show');
         }
 
-        function generateContactButtons() {
+        function generateContactButtons(name, amount, numbers) {
             const container = document.getElementById('contactOptions');
             container.innerHTML = '';
-
+            
             const message = `Olá! Gostaria de participar da rifa solidária.\n\n` +
-                          `💰 Valor: R$ ${parseFloat(document.getElementById('amount').value).toFixed(2).replace('.', ',')}\n` +
-                          `🎲 Número(s) escolhido(s): ${selectedNumbers.map(n => n.toString().padStart(2, '0')).join(', ')}\n\n` +
+                          `👤 Nome: ${name}\n` +
+                          `💰 Valor: R$ ${amount.toFixed(2).replace('.', ',')}\n` +
+                          `🎲 Número(s) escolhido(s): ${numbers.map(n => n.toString().padStart(2, '0')).join(', ')}\n\n` +
                           `Segue o comprovante.`;
 
             whatsappContacts.forEach(contact => {
@@ -1915,7 +2015,7 @@
             const newPixKey = document.getElementById('adminPixKey').value.trim();
             if (newPixKey) {
                 pixKey = newPixKey;
-                document.getElementById('pixKeyValue').textContent = pixKey;
+                document.getElementById('pixKeyValue').textContent = newPixKey;
                 saveSettings();
                 alert('✅ Chave PIX atualizada com sucesso!');
                 document.getElementById('adminPixKey').value = '';
@@ -2034,6 +2134,7 @@
             }
             maxNumber += numbersToAdd;
             generateNumbers();
+            generateManualNumbers();
             alert(`✅ ${numbersToAdd} números foram adicionados. O total agora é ${maxNumber}.`);
             saveState();
         }
@@ -2059,6 +2160,7 @@
             
             maxNumber -= numbersToRemove;
             generateNumbers();
+            generateManualNumbers();
             alert(`✅ ${numbersToRemove} números foram removidos. O total agora é ${maxNumber}.`);
             saveState();
         }
@@ -2332,36 +2434,52 @@
                 const button = document.createElement('button');
                 button.className = 'admin-number-btn';
                 button.textContent = i.toString().padStart(2, '0');
-                button.onclick = () => toggleManualSelection(i);
+                
                 if (takenNumbers.has(i)) {
                     button.classList.add('taken');
-                    button.onclick = null;
                 } else if (reservedNumbers.has(i)) {
                     button.classList.add('reserved');
+                } else {
+                    button.classList.add('available');
                 }
+
+                button.onclick = () => toggleAdminNumber(i, button);
                 container.appendChild(button);
             }
         }
-        
-        function toggleManualSelection(number) {
-            const index = selectedManualNumbers.indexOf(number);
-            const button = document.querySelector(`#manualNumbersContainer button:nth-child(${number})`);
-            
-            if (index > -1) {
-                selectedManualNumbers.splice(index, 1);
-                button.classList.remove('selected');
-            } else {
-                selectedManualNumbers.push(number);
-                button.classList.add('selected');
+
+        function toggleAdminNumber(number, button) {
+             const participantNameInput = document.getElementById('participantNameManual');
+             const participantAmountInput = document.getElementById('participantAmountManual');
+
+            if (button.classList.contains('available')) {
+                button.classList.remove('available');
+                button.classList.add('reserved');
+                reservedNumbers.add(number);
+                takenNumbers.delete(number);
+            } else if (button.classList.contains('reserved')) {
+                button.classList.remove('reserved');
+                button.classList.add('taken');
+                takenNumbers.add(number);
+                reservedNumbers.delete(number);
+            } else if (button.classList.contains('taken')) {
+                button.classList.remove('taken');
+                button.classList.add('available');
+                takenNumbers.delete(number);
+                reservedNumbers.delete(number);
             }
+            saveState();
+            generateNumbers();
         }
 
         function addParticipant() {
-            const name = document.getElementById('participantName').value.trim();
-            const amount = parseFloat(document.getElementById('participantAmount').value);
+            const name = document.getElementById('participantNameManual').value.trim();
+            const amount = parseFloat(document.getElementById('participantAmountManual').value);
             
-            if (selectedManualNumbers.length === 0) {
-                alert('❌ Por favor, selecione pelo menos um número para confirmar o pagamento.');
+            const paidNumbers = Array.from(takenNumbers).filter(n => reservedNumbers.has(n) || participants.some(p => (Array.isArray(p.number) ? p.number.includes(n) : p.number === n)));
+
+            if (paidNumbers.length === 0) {
+                alert('❌ Por favor, selecione os números para confirmar o pagamento.');
                 return;
             }
             if (!name) {
@@ -2373,27 +2491,20 @@
                 return;
             }
             
-            selectedManualNumbers.forEach(n => {
-                reservedNumbers.delete(n);
-                takenNumbers.add(n);
-            });
+            participants.push({ number: paidNumbers.length === 1 ? paidNumbers[0] : paidNumbers, name, amount });
             
-            const numbersToAdd = [...selectedManualNumbers];
-            participants.push({ number: numbersToAdd.length === 1 ? numbersToAdd[0] : numbersToAdd, name, amount });
-            
-            document.getElementById('participantName').value = '';
-            document.getElementById('participantAmount').value = '';
-            selectedManualNumbers = [];
+            document.getElementById('participantNameManual').value = '';
+            document.getElementById('participantAmountManual').value = '';
             
             updateAdminContent();
             generateNumbers();
             generateManualNumbers();
-            alert(`✅ Participante ${name} adicionado com sucesso para o(s) número(s) ${numbersToAdd.join(', ')}!`);
+            alert(`✅ Participante ${name} adicionado com sucesso para o(s) número(s) ${paidNumbers.join(', ')}!`);
             saveState();
 
             if (features.autoNotificationsEnabled && whatsappContacts.length > 0) {
                  const firstContact = whatsappContacts[0];
-                 const message = `Olá, ${name}! Seu(s) número(s) na rifa solidária é(são): ${numbersToAdd.join(', ')}. Valor: R$ ${amount.toFixed(2).replace('.', ',')}. Agradecemos sua participação!`;
+                 const message = `Olá, ${name}! Seu(s) número(s) na rifa solidária é(são): ${paidNumbers.join(', ')}. Valor: R$ ${amount.toFixed(2).replace('.', ',')}. Agradecemos sua participação!`;
                  if (confirm(`Deseja enviar a notificação para o WhatsApp do participante?`)) {
                      window.open(`https://wa.me/${firstContact}?text=${encodeURIComponent(message)}`, '_blank');
                  }
@@ -2405,47 +2516,23 @@
             
             if (confirm(`Tem certeza que deseja remover o participante do número(s) ${numbersToRemove}?`)) {
                 let numbersArray = Array.isArray(numbersToRemove) ? numbersToRemove : [numbersToRemove];
+                
                 numbersArray.forEach(n => {
                     takenNumbers.delete(n);
                     reservedNumbers.delete(n);
                 });
-                participants = participants.filter(p => JSON.stringify(p.number) !== JSON.stringify(numbersToRemove));
+                
+                participants = participants.filter(p => {
+                    const participantNumbers = Array.isArray(p.number) ? p.number : [p.number];
+                    return !participantNumbers.some(n => numbersArray.includes(n));
+                });
+                
                 updateAdminContent();
                 generateNumbers();
                 generateManualNumbers();
                 alert(`✅ Participante do(s) número(s) ${numbersToRemove} removido.`);
                 saveState();
             }
-        }
-        
-        function removeParticipantByInput() {
-            const numberInput = document.getElementById('participantNumber').value.trim();
-            const numbersToRemove = numberInput.split(',').map(n => parseInt(n.trim(), 10));
-
-            if (numbersToRemove.some(isNaN) || numbersToRemove.some(n => n < 1 || n > maxNumber)) {
-                alert(`❌ Por favor, insira número(s) válido(s) entre 1 e ${maxNumber}.`);
-                return;
-            }
-            if (numbersToRemove.some(n => !takenNumbers.has(n) && !reservedNumbers.has(n))) {
-                alert(`⚠️ Um ou mais números não estão vendidos ou reservados.`);
-                return;
-            }
-            
-            numbersToRemove.forEach(n => {
-                takenNumbers.delete(n);
-                reservedNumbers.delete(n);
-                participants = participants.filter(p => {
-                    const participantNumbers = Array.isArray(p.number) ? p.number : [p.number];
-                    return !participantNumbers.includes(n);
-                });
-            });
-
-            updateAdminContent();
-            generateNumbers();
-            generateManualNumbers();
-            alert(`✅ Participante(s) dos números ${numbersToRemove.join(', ')} removido(s).`);
-            saveState();
-            document.getElementById('participantNumber').value = '';
         }
         
         function drawWinner() {
@@ -2457,14 +2544,36 @@
                 alert('⚠️ A rifa já foi encerrada e o sorteio não pode ser refeito.');
                 return;
             }
+            
+            document.getElementById('numbersContainer').style.display = 'none';
+            document.getElementById('raffleDescriptionSection').style.display = 'none';
+            document.getElementById('countdownContainer').style.display = 'none';
+            document.getElementById('winnerAnimation').style.display = 'block';
 
             const winningParticipant = participants[Math.floor(Math.random() * participants.length)];
-            const winnerText = document.getElementById('winnerText');
-            
-            winnerText.innerHTML = `O número sorteado é: **${Array.isArray(winningParticipant.number) ? winningParticipant.number.join(', ') : winningParticipant.number}**<br>Parabéns, **${winningParticipant.name}**!`;
-            
-            document.getElementById('winnerDisplay').style.display = 'block';
-            alert(`🎉 O ganhador é ${winningParticipant.name} com o(s) número(s) ${Array.isArray(winningParticipant.number) ? winningParticipant.number.join(', ') : winningParticipant.number}!`);
+            const winningNumber = Array.isArray(winningParticipant.number) ? winningParticipant.number[0] : winningParticipant.number;
+            const winnerName = winningParticipant.name;
+
+            startWinnerAnimation(winningNumber, winnerName);
+        }
+
+        function startWinnerAnimation(winningNumber, winnerName) {
+            const winnerNumberDisplay = document.getElementById('winnerNumberDisplay');
+            const winnerInfoDisplay = document.getElementById('winnerInfoDisplay');
+            let interval = setInterval(() => {
+                winnerNumberDisplay.textContent = Math.floor(Math.random() * maxNumber + 1).toString().padStart(2, '0');
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                winnerNumberDisplay.textContent = winningNumber.toString().padStart(2, '0');
+                winnerInfoDisplay.innerHTML = `Parabéns, ${winnerName}!`;
+                winnerInfoDisplay.style.display = 'block';
+                document.getElementById('drawWinnerBtn').style.display = 'none';
+                document.getElementById('raffleEnded').style.display = 'block';
+                raffleEnded = true;
+                saveState();
+            }, 5000);
         }
 
         function endRaffle() {
@@ -2562,7 +2671,8 @@
                 raffleEnded: raffleEnded,
                 takenNumbers: Array.from(takenNumbers),
                 reservedNumbers: Array.from(reservedNumbers),
-                maxNumber: maxNumber
+                maxNumber: maxNumber,
+                pendingParticipants: pendingParticipants
             };
             localStorage.setItem('raffleState', JSON.stringify(state));
         }
@@ -2576,7 +2686,8 @@
                 takenNumbers = new Set(state.takenNumbers || []);
                 reservedNumbers = new Set(state.reservedNumbers || []);
                 maxNumber = state.maxNumber || 30;
-                
+                pendingParticipants = state.pendingParticipants || [];
+
                 if (raffleEnded) {
                     document.getElementById('raffleEnded').style.display = 'block';
                     document.getElementById('numbersContainer').style.display = 'none';
@@ -2610,7 +2721,8 @@
                     bundles: bundles
                 },
                 takenNumbers: Array.from(takenNumbers),
-                reservedNumbers: Array.from(reservedNumbers)
+                reservedNumbers: Array.from(reservedNumbers),
+                pendingParticipants: pendingParticipants
             };
             
             const dataStr = JSON.stringify(exportData, null, 2);
