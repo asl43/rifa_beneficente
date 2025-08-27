@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rifa Solidária</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -74,6 +75,40 @@
             margin-top: 15px;
             font-size: 1.2rem;
             opacity: 0.9;
+        }
+        
+        #countdownContainer {
+            margin-top: 20px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        #countdownContainer.hidden {
+            display: none;
+        }
+
+        #countdown {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            font-size: 2rem;
+        }
+
+        .countdown-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+        
+        .countdown-item span {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: normal;
+            margin-top: 5px;
         }
 
         .main-content {
@@ -737,6 +772,11 @@
             .admin-settings-section {
                 grid-template-columns: 1fr;
             }
+            
+            #countdown {
+                font-size: 1.5rem;
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -748,6 +788,28 @@
                 <button class="edit-btn" onclick="editTitle()">✏️ Editar</button>
             </div>
             <p class="subtitle">Participe e ajude uma boa causa!</p>
+            
+            <div id="countdownContainer">
+                <span>SORTEIO EM:</span>
+                <div id="countdown">
+                    <div class="countdown-item">
+                        <span id="days">00</span>
+                        <span>Dias</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="hours">00</span>
+                        <span>Horas</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="minutes">00</span>
+                        <span>Minutos</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="seconds">00</span>
+                        <span>Segundos</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="main-content">
@@ -816,7 +878,7 @@
 
     <div class="admin-panel">
         <button class="admin-btn" onclick="openAdminPanel()" title="Painel Administrativo">
-            ⚙️
+            <i class="fas fa-cog"></i>
         </button>
     </div>
 
@@ -901,6 +963,15 @@
                             <input type="number" id="adminMinAmount" class="admin-input" min="0.01" step="0.01" style="width: 100%;" placeholder="Ex: 5.00">
                             <button class="save-btn" onclick="updateMinAmount()">Salvar Valor</button>
                         </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Data e Hora do Sorteio:</label>
+                            <input type="datetime-local" id="raffleDateTime" class="admin-input" style="width: 100%;">
+                            <button class="save-btn" onclick="updateRaffleDateTime()">Salvar Data</button>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Contagem Regressiva:</label>
+                            <button id="countdownToggle" onclick="toggleCountdown()" style="width: 100%; padding: 8px;">Ativar/Desativar</button>
+                        </div>
                     </div>
                 </div>
 
@@ -981,11 +1052,13 @@
         let participants = [];
         const adminPassword = "admin123";
         let maxNumber = 30;
+        let countdownEnabled = true;
 
         let pixKey = "7bfe6310-8a37-4178-8ba8-8fd532dfa50b";
         let whatsappContacts = ["5592993216959"];
         let emailContacts = [];
         let minAmount = 1.00;
+        let raffleEndDateTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
 
         let trackingData = {
             totalVisits: 0,
@@ -1092,7 +1165,7 @@
             trackingData.totalVisits++;
             trackingData.uniqueVisitors.add(locationInfo.ip);
 
-            if (deviceInfo.deviceType === 'mobile') {
+            if (deviceInfo.deviceType === 'mobile' || deviceInfo.deviceType === 'tablet') {
                 trackingData.mobileVisits++;
             } else {
                 trackingData.desktopVisits++;
@@ -1202,6 +1275,66 @@
                 alert('✅ Dados de visitantes limpos com sucesso!');
             }
         }
+        
+        function updateCountdown() {
+            const countdownDate = new Date(raffleEndDateTime).getTime();
+            const now = new Date().getTime();
+            const distance = countdownDate - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            if (document.getElementById('days')) {
+                document.getElementById('days').textContent = days.toString().padStart(2, '0');
+                document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+                document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+                document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+            }
+
+            if (distance < 0) {
+                raffleEnded = true;
+                clearInterval(countdownInterval);
+                document.getElementById('countdownContainer').innerHTML = '<h2>Rifa Encerrada!</h2>';
+                document.getElementById('numbersContainer').style.display = 'none';
+                document.getElementById('raffleEnded').style.display = 'block';
+                saveState();
+            }
+        }
+        
+        let countdownInterval;
+
+        function startCountdown() {
+            if (!countdownEnabled || raffleEnded) {
+                document.getElementById('countdownContainer').classList.add('hidden');
+                clearInterval(countdownInterval);
+                return;
+            }
+            document.getElementById('countdownContainer').classList.remove('hidden');
+            clearInterval(countdownInterval);
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+        
+        function toggleCountdown() {
+            countdownEnabled = !countdownEnabled;
+            saveSettings();
+            updateCountdownToggleText();
+            startCountdown();
+        }
+
+        function updateCountdownToggleText() {
+            const btn = document.getElementById('countdownToggle');
+            if (countdownEnabled) {
+                btn.textContent = 'Desativar Contagem';
+                btn.style.backgroundColor = '#e74c3c';
+            } else {
+                btn.textContent = 'Ativar Contagem';
+                btn.style.backgroundColor = '#00b894';
+            }
+        }
+
 
         function generateNumbers() {
             const grid = document.getElementById('numbersGrid');
@@ -1268,7 +1401,7 @@
                 link.href = `https://wa.me/${contact}?text=${encodeURIComponent(message)}`;
                 link.className = 'contact-link whatsapp';
                 link.target = '_blank';
-                link.innerHTML = '<span><i class="fab fa-whatsapp"></i> WhatsApp</span>';
+                link.innerHTML = '<i class="fab fa-whatsapp"></i> WhatsApp';
                 container.appendChild(link);
             });
 
@@ -1277,7 +1410,7 @@
                 link.href = `mailto:${contact}?subject=Comprovante de Participação Rifa&body=${encodeURIComponent(message)}`;
                 link.className = 'contact-link email';
                 link.target = '_blank';
-                link.innerHTML = '<span><i class="far fa-envelope"></i> E-mail</span>';
+                link.innerHTML = '<i class="far fa-envelope"></i> E-mail';
                 container.appendChild(link);
             });
 
@@ -1389,6 +1522,20 @@
             }
         }
         
+        function updateRaffleDateTime() {
+            const newDateTime = document.getElementById('raffleDateTime').value;
+            if (newDateTime) {
+                raffleEndDateTime = new Date(newDateTime).toISOString().slice(0, 16);
+                saveSettings();
+                startCountdown();
+                alert('✅ Data e hora do sorteio atualizadas!');
+                document.getElementById('raffleDateTime').value = '';
+                loadAdminSettings();
+            } else {
+                alert('⚠️ Por favor, selecione uma data e hora válidas.');
+            }
+        }
+
         function addNumbers() {
             const numbersToAdd = parseInt(document.getElementById('numbersAmount').value);
             if (isNaN(numbersToAdd) || numbersToAdd <= 0) {
@@ -1413,7 +1560,6 @@
                 return;
             }
             
-            // Check if any numbers to be removed are already taken
             for (let i = maxNumber; i > maxNumber - numbersToRemove; i--) {
                 if (takenNumbers.has(i)) {
                     alert(`Não é possível remover o número ${i} porque ele já foi vendido. Por favor, remova os participantes manualmente antes de diminuir a quantidade de números.`);
@@ -1432,7 +1578,9 @@
                 pixKey: pixKey,
                 whatsappContacts: whatsappContacts,
                 emailContacts: emailContacts,
-                minAmount: minAmount
+                minAmount: minAmount,
+                raffleEndDateTime: raffleEndDateTime,
+                countdownEnabled: countdownEnabled
             };
             localStorage.setItem('raffleSettings', JSON.stringify(settings));
         }
@@ -1445,6 +1593,8 @@
                 whatsappContacts = settings.whatsappContacts || whatsappContacts;
                 emailContacts = settings.emailContacts || emailContacts;
                 minAmount = settings.minAmount || minAmount;
+                raffleEndDateTime = settings.raffleEndDateTime || raffleEndDateTime;
+                countdownEnabled = settings.hasOwnProperty('countdownEnabled') ? settings.countdownEnabled : true;
                 
                 if (document.getElementById('pixKeyValue')) {
                     document.getElementById('pixKeyValue').textContent = pixKey;
@@ -1525,6 +1675,8 @@
             document.getElementById('adminPixKey').placeholder = `Atual: ${pixKey}`;
             document.getElementById('adminMinAmount').placeholder = `Atual: ${minAmount.toFixed(2)}`;
             document.getElementById('numbersAmount').value = maxNumber;
+            document.getElementById('raffleDateTime').value = raffleEndDateTime;
+            updateCountdownToggleText();
 
             const whatsappList = document.getElementById('whatsappList');
             whatsappList.innerHTML = '';
@@ -1643,6 +1795,8 @@
                 closeAdminPanel();
                 alert('🏁 Rifa encerrada com sucesso!');
                 saveState();
+                clearInterval(countdownInterval);
+                document.getElementById('countdownContainer').innerHTML = '<h2>Rifa Encerrada!</h2>';
             }
         }
 
@@ -1659,6 +1813,8 @@
                 updateAdminContent();
                 alert('🔄 Rifa reiniciada com sucesso!');
                 saveState();
+                loadSettings();
+                startCountdown();
             }
         }
         
@@ -1757,7 +1913,9 @@
                     whatsappContacts: whatsappContacts,
                     emailContacts: emailContacts,
                     minAmount: minAmount,
-                    maxNumber: maxNumber
+                    maxNumber: maxNumber,
+                    raffleEndDateTime: raffleEndDateTime,
+                    countdownEnabled: countdownEnabled
                 }
             };
             
@@ -1803,6 +1961,8 @@
                             emailContacts = importedData.settings.emailContacts || emailContacts;
                             minAmount = importedData.settings.minAmount || minAmount;
                             maxNumber = importedData.settings.maxNumber || 30;
+                            raffleEndDateTime = importedData.settings.raffleEndDateTime || raffleEndDateTime;
+                            countdownEnabled = importedData.settings.hasOwnProperty('countdownEnabled') ? importedData.settings.countdownEnabled : true;
                             saveSettings();
                         }
                         
@@ -1813,6 +1973,7 @@
                         updateAdminContent();
                         updateAdminStats();
                         generateNumbers();
+                        startCountdown();
 
                         document.getElementById('raffleEnded').style.display = raffleEnded ? 'block' : 'none';
                         document.getElementById('numbersContainer').style.display = raffleEnded ? 'none' : 'block';
@@ -1844,6 +2005,7 @@
             loadState();
             generateNumbers();
             trackVisit();
+            startCountdown();
         });
     </script>
 </body>
