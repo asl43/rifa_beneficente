@@ -147,13 +147,11 @@
             background: linear-gradient(135deg, #ff6b6b, #ee5a24);
             animation: pulse 1s infinite;
         }
-        
-        /* Cor indisponível marcada pelo admin */
+
         .number-btn.taken {
             background: #ddd;
             color: #999;
             cursor: not-allowed;
-            border: 2px solid #ccc;
         }
 
         .number-btn.taken:hover {
@@ -653,6 +651,25 @@
         .submit-contact-btn {
             display: none; /* Formulário removido */
         }
+        
+        .admin-settings-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .admin-settings-section > div {
+            background: #f1f2f6;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .admin-settings-section .save-btn {
+            width: 100%;
+            margin-top: 5px;
+            padding: 8px;
+        }
 
         @media (max-width: 768px) {
             #mainTitle {
@@ -695,6 +712,10 @@
                 padding: 6px 8px;
                 font-size: 0.75rem;
             }
+            
+            .admin-settings-section {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -709,8 +730,6 @@
         </div>
 
         <div class="main-content">
-
-
             <div class="info-cards">
                 <div class="info-card">
                     <h3>🎯 Como Funciona</h3>
@@ -718,7 +737,7 @@
                 </div>
                 <div class="info-card">
                     <h3>💰 Valor Mínimo</h3>
-                    <p>A partir de R$ 5,00 você já pode participar</p>
+                    <p id="minAmountDisplay">A partir de R$ 1,00 você já pode participar</p>
                 </div>
                 <div class="info-card">
                     <h3>🏆 Prêmio</h3>
@@ -745,8 +764,8 @@
                 </div>
 
                 <div class="amount-input-group">
-                    <label for="amount">💰 Valor da Contribuição (mínimo R$ 5,00):</label>
-                    <input type="number" id="amount" class="amount-input" min="5" step="0.01" placeholder="Digite o valor em reais (mínimo R$ 5,00)">
+                    <label for="amount"><span id="amountLabel">💰 Valor da Contribuição (mínimo R$ 1,00):</span></label>
+                    <input type="number" id="amount" class="amount-input" min="1" step="0.01" placeholder="Digite o valor em reais">
                 </div>
 
                 <button class="pix-button" onclick="generatePix()">
@@ -759,8 +778,9 @@
                     <p><strong>Número escolhido:</strong> <span id="pixNumber">-</span></p>
                     <p><strong>Chave PIX:</strong></p>
                     <div class="pix-key" id="pixKey">
-                        92 99321-6959
+                        <span id="pixKeyValue">7bfe6310-8a37-4178-8ba8-8fd532dfa50b</span>
                         <button class="copy-btn" onclick="copyPixKey()">📋 Copiar</button>
+                        <button class="edit-btn" onclick="editPixKey()" style="margin-left: 5px;">✏️ Editar</button>
                     </div>
                     <p><small>⚠️ Após o pagamento, envie o comprovante via WhatsApp!</small></p>
                     <a href="#" id="whatsappLink" class="whatsapp-btn" target="_blank">
@@ -823,7 +843,7 @@
                             <thead>
                                 <tr>
                                     <th>Data/Hora</th>
-                                    <th>IP</th>
+                                    <th>ID Visitante</th>
                                     <th>Dispositivo</th>
                                     <th>Localização</th>
                                 </tr>
@@ -835,11 +855,31 @@
                     <button class="clear-data-btn" onclick="clearVisitorData()">🗑️ Limpar Dados de Visitantes</button>
                 </div>
 
+                <div class="admin-section">
+                    <h3>🔧 Configurações da Rifa</h3>
+                    <div class="admin-settings-section">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Chave PIX:</label>
+                            <input type="text" id="adminPixKey" class="admin-input" style="width: 100%;" placeholder="Digite a chave PIX">
+                            <button class="save-btn" onclick="updatePixKey()">Salvar PIX</button>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">WhatsApp (apenas números):</label>
+                            <input type="text" id="adminWhatsApp" class="admin-input" style="width: 100%;" placeholder="5592999999999">
+                            <button class="save-btn" onclick="updateWhatsApp()">Salvar WhatsApp</button>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Valor Mínimo (R$):</label>
+                            <input type="number" id="adminMinAmount" class="admin-input" min="0.01" step="0.01" style="width: 100%;" placeholder="Ex: 5.00">
+                            <button class="save-btn" onclick="updateMinAmount()">Salvar Valor</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="admin-section" id="manual-management">
                     <h3>✅ Gerenciamento Manual</h3>
                     <input type="number" id="participantNumber" class="admin-input" min="1" max="100" placeholder="Número">
                     <input type="text" id="participantName" class="admin-input name" placeholder="Nome do Participante">
-                    <input type="number" id="participantAmount" class="admin-input amount" min="5" step="0.01" placeholder="Valor (R$)">
+                    <input type="number" id="participantAmount" class="admin-input amount" min="1" step="0.01" placeholder="Valor (R$)">
                     <button class="add-participant-btn" onclick="addParticipant()">Marcar como Vendido</button>
                     <button class="reset-number-btn" onclick="removeParticipantByInput()">Marcar como Disponível</button>
                 </div>
@@ -898,9 +938,12 @@
         let takenNumbers = new Set();
         let raffleEnded = false;
         let participants = [];
-        let visitorData = [];
-        let currentVisitor = null;
         const adminPassword = "admin123";
+        
+        // Configurações editáveis
+        let pixKey = "7bfe6310-8a37-4178-8ba8-8fd532dfa50b";
+        let whatsappNumber = "5592993216959";
+        let minAmount = 1.00;
 
         // Sistema de rastreamento de visitantes
         let trackingData = {
@@ -919,21 +962,18 @@
             let browser = 'Unknown';
             let os = 'Unknown';
 
-            // Detectar tipo de dispositivo
             if (/tablet|ipad|playbook|silk/i.test(userAgent)) {
                 deviceType = 'tablet';
             } else if (/mobile|iphone|ipod|android|blackberry|opera|mini|windows\sce|palm|smartphone|iemobile/i.test(userAgent)) {
                 deviceType = 'mobile';
             }
 
-            // Detectar navegador
             if (userAgent.indexOf('Chrome') > -1) browser = 'Chrome';
             else if (userAgent.indexOf('Firefox') > -1) browser = 'Firefox';
             else if (userAgent.indexOf('Safari') > -1) browser = 'Safari';
             else if (userAgent.indexOf('Edge') > -1) browser = 'Edge';
             else if (userAgent.indexOf('Opera') > -1) browser = 'Opera';
 
-            // Detectar sistema operacional
             if (userAgent.indexOf('Windows') > -1) os = 'Windows';
             else if (userAgent.indexOf('Mac') > -1) os = 'macOS';
             else if (userAgent.indexOf('Linux') > -1) os = 'Linux';
@@ -943,52 +983,81 @@
             return { deviceType, browser, os };
         }
 
-        // Função para obter localização aproximada via IP (usando serviço gratuito)
         async function getLocationInfo() {
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-                return {
-                    ip: data.ip || 'N/A',
-                    country: data.country_name || 'N/A',
-                    region: data.region || 'N/A',
-                    city: data.city || 'N/A'
-                };
-            } catch (error) {
-                console.log('Erro ao obter localização:', error);
-                return {
-                    ip: 'N/A',
-                    country: 'N/A',
-                    region: 'N/A',
-                    city: 'N/A'
-                };
+            const apis = [
+                {
+                    url: 'https://ipapi.co/json/',
+                    parser: (data) => ({
+                        ip: data.ip || 'N/A',
+                        country: data.country_name || 'N/A',
+                        region: data.region || 'N/A',
+                        city: data.city || 'N/A'
+                    })
+                },
+                {
+                    url: 'https://api.ipify.org?format=json',
+                    parser: (data) => ({
+                        ip: data.ip || 'N/A',
+                        country: 'N/A',
+                        region: 'N/A',
+                        city: 'N/A'
+                    })
+                },
+                {
+                    url: 'https://httpbin.org/ip',
+                    parser: (data) => ({
+                        ip: data.origin || 'N/A',
+                        country: 'N/A',
+                        region: 'N/A',
+                        city: 'N/A'
+                    })
+                }
+            ];
+
+            for (const api of apis) {
+                try {
+                    const response = await fetch(api.url, { 
+                        timeout: 5000,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const locationInfo = api.parser(data);
+                        return locationInfo;
+                    }
+                } catch (error) {
+                    continue;
+                }
             }
+
+            return {
+                ip: 'N/A',
+                country: 'N/A',
+                region: 'N/A',
+                city: 'N/A'
+            };
         }
 
-        // Função para registrar uma visita
         async function trackVisit() {
             const deviceInfo = getDeviceInfo();
             const locationInfo = await getLocationInfo();
             const now = new Date();
             const today = now.toDateString();
 
-            // Carregar dados existentes
             loadTrackingData();
 
-            // Incrementar contadores
             trackingData.totalVisits++;
-            
-            // Contar visitantes únicos por IP
             trackingData.uniqueVisitors.add(locationInfo.ip);
 
-            // Contar por tipo de dispositivo
             if (deviceInfo.deviceType === 'mobile') {
                 trackingData.mobileVisits++;
             } else {
                 trackingData.desktopVisits++;
             }
 
-            // Contar visitas de hoje
             const lastVisitDate = localStorage.getItem('lastVisitDate');
             if (lastVisitDate !== today) {
                 trackingData.todayVisits = 1;
@@ -997,7 +1066,6 @@
                 trackingData.todayVisits++;
             }
 
-            // Criar registro do visitante
             const visitorRecord = {
                 id: Date.now(),
                 timestamp: now.toISOString(),
@@ -1007,19 +1075,15 @@
                 city: locationInfo.city,
                 device: deviceInfo.deviceType,
                 browser: deviceInfo.browser,
-                os: deviceInfo.os
+                os: deviceInfo.os,
+                fingerprint: "ID " + Math.random().toString(36).substr(2, 9).toUpperCase()
             };
 
             trackingData.visitors.push(visitorRecord);
-            currentVisitor = visitorRecord;
 
-            // Salvar dados
             saveTrackingData();
         }
 
-        // Função removida - não coletamos mais dados manuais de contato
-
-        // Função para carregar dados de rastreamento
         function loadTrackingData() {
             const saved = localStorage.getItem('raffleTrackingData');
             if (saved) {
@@ -1031,7 +1095,6 @@
             }
         }
 
-        // Função para salvar dados de rastreamento
         function saveTrackingData() {
             const dataToSave = {
                 ...trackingData,
@@ -1040,7 +1103,6 @@
             localStorage.setItem('raffleTrackingData', JSON.stringify(dataToSave));
         }
 
-        // Função para atualizar estatísticas no painel admin
         function updateAdminStats() {
             loadTrackingData();
             
@@ -1050,16 +1112,13 @@
             document.getElementById('desktopVisits').textContent = trackingData.desktopVisits;
             document.getElementById('todayVisits').textContent = trackingData.todayVisits;
 
-            // Atualizar tabela de visitantes
             updateVisitorsTable();
         }
 
-        // Função para atualizar tabela de visitantes
         function updateVisitorsTable() {
             const tbody = document.getElementById('visitorsTableBody');
             tbody.innerHTML = '';
 
-            // Ordenar visitantes por data (mais recente primeiro)
             const sortedVisitors = [...trackingData.visitors].sort((a, b) => 
                 new Date(b.timestamp) - new Date(a.timestamp)
             );
@@ -1068,30 +1127,26 @@
                 const row = document.createElement('tr');
                 const date = new Date(visitor.timestamp);
                 
-                // Ícone do dispositivo
                 let deviceIcon = '🖥️';
                 if (visitor.device === 'mobile') deviceIcon = '📱';
                 else if (visitor.device === 'tablet') deviceIcon = '📱';
 
-                const contactInfo = '<em style="color: #999;">Dados automáticos</em>';
-
                 row.innerHTML = `
                     <td>${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR')}</td>
-                    <td>📍 ${visitor.ip}</td>
+                    <td>🔑 ${visitor.fingerprint}</td>
                     <td>
                         <span class="device-${visitor.device}">${deviceIcon} ${visitor.device}</span><br>
                         <small>${visitor.browser} / ${visitor.os}</small>
                     </td>
                     <td>
-                        🌍 ${visitor.city}, ${visitor.region}<br>
-                        <small>${visitor.country}</small>
+                        🌍 ${visitor.city} / ${visitor.region}<br>
+                        <small>🌐 ${visitor.ip}</small>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        // Função para limpar dados de visitantes
         function clearVisitorData() {
             if (confirm('⚠️ Tem certeza que deseja limpar todos os dados de visitantes? Esta ação não pode ser desfeita.')) {
                 trackingData = {
@@ -1108,7 +1163,6 @@
             }
         }
 
-        // Generate numbers grid
         function generateNumbers() {
             const grid = document.getElementById('numbersGrid');
             grid.innerHTML = '';
@@ -1117,92 +1171,169 @@
                 const button = document.createElement('button');
                 button.className = 'number-btn';
                 button.textContent = i.toString().padStart(2, '0');
-                
-                // Adiciona o evento de clique para seleção
                 button.onclick = () => selectNumber(i);
-
-                if (takenNumbers.has(i)) {
-                    button.classList.add('taken');
-                    button.onclick = null; // Impede o clique em números já vendidos
-                }
                 
-                if (raffleEnded) {
-                     button.classList.add('taken');
-                     button.onclick = null;
+                if (takenNumbers.has(i) || raffleEnded) {
+                    button.classList.add('taken');
+                    button.onclick = null;
                 }
                 
                 grid.appendChild(button);
             }
         }
 
-        // Select a number
         function selectNumber(number) {
             if (takenNumbers.has(number) || raffleEnded) return;
             
-            // Remove previous selection
             document.querySelectorAll('.number-btn.selected').forEach(btn => {
                 btn.classList.remove('selected');
             });
             
-            // Select new number
             selectedNumber = number;
-            const selectedButton = Array.from(document.querySelectorAll('.number-btn')).find(btn => parseInt(btn.textContent) === number);
-            selectedButton.classList.add('selected');
+            event.target.classList.add('selected');
             
-            // Show payment section
             document.getElementById('selectedNumber').textContent = number.toString().padStart(2, '0');
             document.getElementById('numbersContainer').style.display = 'none';
             document.getElementById('paymentSection').classList.add('show');
         }
 
-        // Generate PIX payment
         function generatePix() {
-            const amount = document.getElementById('amount').value;
+            const amount = parseFloat(document.getElementById('amount').value);
             
-            if (!amount || parseFloat(amount) < 5) {
-                alert('⚠️ Por favor, insira um valor mínimo de R$ 5,00');
+            if (isNaN(amount) || amount < minAmount) {
+                alert(`⚠️ Por favor, insira um valor mínimo de R$ ${minAmount.toFixed(2).replace('.', ',')}`);
                 return;
             }
             
-            // Display PIX information
-            document.getElementById('pixAmount').textContent = parseFloat(amount).toFixed(2).replace('.', ',');
+            document.getElementById('pixAmount').textContent = amount.toFixed(2).replace('.', ',');
             document.getElementById('pixNumber').textContent = selectedNumber.toString().padStart(2, '0');
+            document.getElementById('pixKeyValue').textContent = pixKey;
             
-            // Generate WhatsApp link
-            const message = `Olá! Acabei de fazer o pagamento da rifa solidária.\n\n` +
-                          `💰 Valor: R$ ${parseFloat(amount).toFixed(2).replace('.', ',')}\n` +
-                          `🎲 Número escolhido: ${selectedNumber.toString().padStart(2, '0')}\n` +
-                          `📱 PIX: 92 99321-6959\n\n` +
-                          `Assim que for confirmado, por favor, me avise!`;
+            const message = `Olá! Gostaria de participar da rifa solidária.\n\n` +
+                          `💰 Valor: R$ ${amount.toFixed(2).replace('.', ',')}\n` +
+                          `🎲 Número escolhido: ${selectedNumber.toString().padStart(2, '0')}\n\n` +
+                          `Segue o comprovante.`;
             
-            const whatsappUrl = `https://wa.me/5592993216959?text=${encodeURIComponent(message)}`;
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
             document.getElementById('whatsappLink').href = whatsappUrl;
             
             document.getElementById('pixInfo').classList.add('show');
         }
+        
+        async function copyPixKey() {
+            const pixKeyElement = document.getElementById('pixKeyValue');
+            const pixText = pixKeyElement.textContent;
 
-        // Copy PIX key to clipboard
-        function copyPixKey() {
-            const pixKey = "92 99321-6959";
-            navigator.clipboard.writeText(pixKey).then(() => {
+            try {
+                await navigator.clipboard.writeText(pixText);
                 alert('✅ Chave PIX copiada para a área de transferência!');
-            });
+            } catch (err) {
+                const tempInput = document.createElement('textarea');
+                tempInput.value = pixText;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                alert('✅ Chave PIX copiada para a área de transferência!');
+            }
         }
 
-        // Go back to numbers selection
+        function editPixKey() {
+            const newPixKey = prompt('Digite a nova chave PIX:', pixKey);
+            if (newPixKey && newPixKey.trim()) {
+                pixKey = newPixKey.trim();
+                document.getElementById('pixKeyValue').textContent = pixKey;
+                saveSettings();
+                alert('✅ Chave PIX atualizada!');
+            }
+        }
+
+        function updatePixKey() {
+            const newPixKey = document.getElementById('adminPixKey').value.trim();
+            if (newPixKey) {
+                pixKey = newPixKey;
+                document.getElementById('pixKeyValue').textContent = pixKey;
+                saveSettings();
+                alert('✅ Chave PIX atualizada com sucesso!');
+                document.getElementById('adminPixKey').value = '';
+                loadAdminSettings();
+            } else {
+                alert('⚠️ Por favor, digite uma chave PIX válida.');
+            }
+        }
+
+        function updateWhatsApp() {
+            const newWhatsApp = document.getElementById('adminWhatsApp').value.trim();
+            if (newWhatsApp && /^\d+$/.test(newWhatsApp)) {
+                whatsappNumber = newWhatsApp;
+                saveSettings();
+                alert('✅ WhatsApp atualizado com sucesso!');
+                document.getElementById('adminWhatsApp').value = '';
+                loadAdminSettings();
+            } else {
+                alert('⚠️ Por favor, digite apenas números (ex: 5592999999999).');
+            }
+        }
+        
+        function updateMinAmount() {
+            const newMinAmount = parseFloat(document.getElementById('adminMinAmount').value);
+            if (!isNaN(newMinAmount) && newMinAmount > 0) {
+                minAmount = newMinAmount;
+                document.getElementById('minAmountDisplay').textContent = `A partir de R$ ${minAmount.toFixed(2).replace('.', ',')} você já pode participar`;
+                document.getElementById('amountLabel').textContent = `💰 Valor da Contribuição (mínimo R$ ${minAmount.toFixed(2).replace('.', ',')}):`;
+                document.getElementById('amount').min = minAmount.toFixed(2);
+                saveSettings();
+                alert('✅ Valor mínimo atualizado com sucesso!');
+                document.getElementById('adminMinAmount').value = '';
+                loadAdminSettings();
+            } else {
+                alert('⚠️ Por favor, insira um valor mínimo válido (maior que 0).');
+            }
+        }
+
+        function saveSettings() {
+            const settings = {
+                pixKey: pixKey,
+                whatsappNumber: whatsappNumber,
+                minAmount: minAmount
+            };
+            localStorage.setItem('raffleSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('raffleSettings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                pixKey = settings.pixKey || pixKey;
+                whatsappNumber = settings.whatsappNumber || whatsappNumber;
+                minAmount = settings.minAmount || minAmount;
+                
+                if (document.getElementById('pixKeyValue')) {
+                    document.getElementById('pixKeyValue').textContent = pixKey;
+                }
+                if (document.getElementById('minAmountDisplay')) {
+                    document.getElementById('minAmountDisplay').textContent = `A partir de R$ ${minAmount.toFixed(2).replace('.', ',')} você já pode participar`;
+                }
+                if (document.getElementById('amountLabel')) {
+                     document.getElementById('amountLabel').textContent = `💰 Valor da Contribuição (mínimo R$ ${minAmount.toFixed(2).replace('.', ',')}):`;
+                }
+                if (document.getElementById('amount')) {
+                     document.getElementById('amount').min = minAmount.toFixed(2);
+                }
+            }
+        }
+
         function backToNumbers() {
             document.getElementById('paymentSection').classList.remove('show');
             document.getElementById('numbersContainer').style.display = 'block';
             document.getElementById('pixInfo').classList.remove('show');
             
-            // Clear selection
             document.querySelectorAll('.number-btn.selected').forEach(btn => {
                 btn.classList.remove('selected');
             });
             selectedNumber = null;
         }
 
-        // Edit title functionality
         function editTitle() {
             const currentTitle = document.getElementById('mainTitle').textContent;
             document.getElementById('titleInput').value = currentTitle;
@@ -1223,7 +1354,6 @@
             closeModal();
         }
         
-        // Admin Panel Functions
         function openAdminPanel() {
             document.getElementById('adminModal').style.display = 'block';
             document.getElementById('adminPassword').focus();
@@ -1243,10 +1373,17 @@
                 document.getElementById('adminLogin').style.display = 'none';
                 document.getElementById('adminContent').style.display = 'block';
                 updateAdminContent();
-                updateAdminStats(); // Atualizar estatísticas ao entrar no painel
+                updateAdminStats();
+                loadAdminSettings();
             } else {
                 alert('❌ Senha incorreta!');
             }
+        }
+
+        function loadAdminSettings() {
+            document.getElementById('adminPixKey').placeholder = `Atual: ${pixKey}`;
+            document.getElementById('adminWhatsApp').placeholder = `Atual: ${whatsappNumber}`;
+            document.getElementById('adminMinAmount').placeholder = `Atual: ${minAmount.toFixed(2)}`;
         }
         
         function updateAdminContent() {
@@ -1286,8 +1423,8 @@
                 alert('❌ Por favor, insira o nome do participante.');
                 return;
             }
-            if (isNaN(amount) || amount < 5) {
-                alert('❌ Por favor, insira um valor mínimo de R$ 5,00.');
+            if (isNaN(amount) || amount <= 0) {
+                alert('❌ Por favor, insira um valor válido para a contribuição.');
                 return;
             }
             
@@ -1370,12 +1507,10 @@
             doc.text(`Data de Geração: ${new Date().toLocaleDateString()}`, 105, y, null, null, "center");
             y += 20;
             
-            // Informações financeiras
             doc.setFontSize(14);
             doc.text(`Total Arrecadado: R$ ${totalRaised}`, 15, y);
             y += 15;
             
-            // Estatísticas de acesso
             doc.text("Estatísticas de Acesso:", 15, y);
             y += 10;
             doc.setFontSize(10);
@@ -1404,13 +1539,9 @@
                 margin: { top: y }
             });
 
-            // Não há mais dados de contato para adicionar no PDF
-            // Removida seção de visitantes com contato
-
             doc.save("relatorio-completo-rifa.pdf");
         }
 
-        // Função para exportar todos os dados
         function exportData() {
             loadTrackingData();
             
@@ -1420,8 +1551,14 @@
                     uniqueVisitors: Array.from(trackingData.uniqueVisitors)
                 },
                 participants: participants,
+                raffleEnded: raffleEnded,
                 exportDate: new Date().toISOString(),
-                raffleTitle: document.getElementById('mainTitle').textContent
+                raffleTitle: document.getElementById('mainTitle').textContent,
+                settings: {
+                    pixKey: pixKey,
+                    whatsappNumber: whatsappNumber,
+                    minAmount: minAmount
+                }
             };
             
             const dataStr = JSON.stringify(exportData, null, 2);
@@ -1435,7 +1572,6 @@
             alert('✅ Dados exportados com sucesso! Guarde este arquivo em local seguro.');
         }
         
-        // Função para importar dados
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1446,40 +1582,46 @@
                     const importedData = JSON.parse(e.target.result);
                     
                     if (confirm('⚠️ Importar dados irá substituir os dados atuais. Deseja continuar?')) {
-                        // Restaurar dados de rastreamento
                         trackingData = {
                             ...importedData.trackingData,
                             uniqueVisitors: new Set(importedData.trackingData.uniqueVisitors || [])
                         };
                         
-                        // Restaurar participantes
                         participants = importedData.participants || [];
                         takenNumbers.clear();
                         participants.forEach(p => takenNumbers.add(p.number));
                         
-                        // Restaurar título se existir
                         if (importedData.raffleTitle) {
                             document.getElementById('mainTitle').textContent = importedData.raffleTitle;
                         }
+
+                        raffleEnded = importedData.raffleEnded || false;
+
+                        if (importedData.settings) {
+                            pixKey = importedData.settings.pixKey || pixKey;
+                            whatsappNumber = importedData.settings.whatsappNumber || whatsappNumber;
+                            minAmount = importedData.settings.minAmount || minAmount;
+                            saveSettings();
+                        }
                         
-                        // Salvar dados
                         saveTrackingData();
                         
-                        // Atualizar interface
+                        loadSettings();
                         updateAdminContent();
                         updateAdminStats();
                         generateNumbers();
+
+                        document.getElementById('raffleEnded').style.display = raffleEnded ? 'block' : 'none';
+                        document.getElementById('numbersContainer').style.display = raffleEnded ? 'none' : 'block';
                         
                         alert(`✅ Dados importados com sucesso!\n\nImportado em: ${new Date(importedData.exportDate).toLocaleString('pt-BR')}`);
                     }
                 } catch (error) {
                     alert('❌ Erro ao importar dados. Verifique se o arquivo está correto.');
-                    console.error('Erro na importação:', error);
                 }
             };
             reader.readAsText(file);
             
-            // Limpar o input para permitir reimportação do mesmo arquivo
             event.target.value = '';
         }
         window.onclick = function(event) {
@@ -1494,10 +1636,10 @@
             }
         }
 
-        // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
             generateNumbers();
-            trackVisit(); // Registrar visita ao carregar a página
+            trackVisit();
         });
     </script>
 </body>
