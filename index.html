@@ -6,7 +6,6 @@
     <title>Rifa Solidária</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Estilos existentes... */
         * {
             margin: 0;
             padding: 0;
@@ -190,17 +189,6 @@
         }
 
         .number-btn.taken:hover {
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .number-btn.paid {
-            background: #e74c3c;
-            color: white;
-            cursor: not-allowed;
-        }
-
-        .number-btn.paid:hover {
             transform: none;
             box-shadow: none;
         }
@@ -520,8 +508,9 @@
         .admin-number-btn.taken {
             background: #e74c3c;
             color: white;
+            cursor: not-allowed;
         }
-        
+
         .admin-number-btn.selected {
             background: #ff9f43;
             animation: pulse 1s infinite;
@@ -1330,7 +1319,7 @@
 
                 <div class="admin-section" id="manual-management">
                     <h3>✅ Gerenciamento Manual de Vendas</h3>
-                    <p>Clique nos números para alterar o status. Laranja = Reservado, Vermelho = Vendido, Verde = Disponível.</p>
+                    <p>Clique nos números para selecioná-los para a venda. O laranja pulsante indica a seleção para a venda manual. O vermelho significa vendido e o verde está disponível.</p>
                     <div class="manual-selection-container" id="manualNumbersContainer">
                         </div>
                     <input type="text" id="participantNameManual" class="admin-input name" placeholder="Nome do Participante">
@@ -1732,8 +1721,6 @@
                 numbersContainer.style.display = 'none';
                 return;
             } else {
-                // Ao recarregar a página, se não houver seleção de pacotes,
-                // exibe a seção de pacotes e a de números
                 if (!isManualSelection) {
                     bundlesContainer.style.display = features.bundlesEnabled ? 'block' : 'none';
                     numbersContainer.style.display = 'block';
@@ -1807,7 +1794,6 @@
                     showPaymentScreen();
                 }
             } else {
-                // Single number selection
                 selectedNumbers = [number];
                 reservedNumbers.clear();
                 reservedNumbers.add(number);
@@ -1935,7 +1921,6 @@
             document.getElementById('pixNumbers').textContent = selectedNumbers.map(n => n.toString().padStart(2, '0')).join(', ');
             document.getElementById('pixKeyValue').textContent = pixKey;
 
-            // Save the pending participant and reserve numbers
             const participantData = {
                 name: name,
                 amount: amount,
@@ -2437,10 +2422,13 @@
                 
                 if (takenNumbers.has(i)) {
                     button.classList.add('taken');
+                    button.title = "Vendido";
                 } else if (reservedNumbers.has(i)) {
                     button.classList.add('reserved');
+                    button.title = "Reservado";
                 } else {
                     button.classList.add('available');
+                    button.title = "Disponível";
                 }
 
                 button.onclick = () => toggleAdminNumber(i, button);
@@ -2449,36 +2437,25 @@
         }
 
         function toggleAdminNumber(number, button) {
-             const participantNameInput = document.getElementById('participantNameManual');
-             const participantAmountInput = document.getElementById('participantAmountManual');
-
-            if (button.classList.contains('available')) {
-                button.classList.remove('available');
-                button.classList.add('reserved');
-                reservedNumbers.add(number);
-                takenNumbers.delete(number);
-            } else if (button.classList.contains('reserved')) {
-                button.classList.remove('reserved');
-                button.classList.add('taken');
-                takenNumbers.add(number);
-                reservedNumbers.delete(number);
-            } else if (button.classList.contains('taken')) {
-                button.classList.remove('taken');
-                button.classList.add('available');
-                takenNumbers.delete(number);
-                reservedNumbers.delete(number);
+            if (button.classList.contains('taken')) {
+                alert('❌ Este número já está vendido. Não pode ser selecionado.');
+                return;
             }
-            saveState();
-            generateNumbers();
+
+            if (selectedManualNumbers.includes(number)) {
+                selectedManualNumbers = selectedManualNumbers.filter(n => n !== number);
+                button.classList.remove('selected');
+            } else {
+                selectedManualNumbers.push(number);
+                button.classList.add('selected');
+            }
         }
 
         function addParticipant() {
             const name = document.getElementById('participantNameManual').value.trim();
             const amount = parseFloat(document.getElementById('participantAmountManual').value);
             
-            const paidNumbers = Array.from(takenNumbers).filter(n => reservedNumbers.has(n) || participants.some(p => (Array.isArray(p.number) ? p.number.includes(n) : p.number === n)));
-
-            if (paidNumbers.length === 0) {
+            if (selectedManualNumbers.length === 0) {
                 alert('❌ Por favor, selecione os números para confirmar o pagamento.');
                 return;
             }
@@ -2491,24 +2468,31 @@
                 return;
             }
             
-            participants.push({ number: paidNumbers.length === 1 ? paidNumbers[0] : paidNumbers, name, amount });
+            participants.push({ number: selectedManualNumbers.length === 1 ? selectedManualNumbers[0] : selectedManualNumbers, name, amount });
             
+            selectedManualNumbers.forEach(num => {
+                takenNumbers.add(num);
+                reservedNumbers.delete(num);
+            });
+
             document.getElementById('participantNameManual').value = '';
             document.getElementById('participantAmountManual').value = '';
             
             updateAdminContent();
             generateNumbers();
             generateManualNumbers();
-            alert(`✅ Participante ${name} adicionado com sucesso para o(s) número(s) ${paidNumbers.join(', ')}!`);
+            alert(`✅ Participante ${name} adicionado com sucesso para o(s) número(s) ${selectedManualNumbers.join(', ')}!`);
             saveState();
 
             if (features.autoNotificationsEnabled && whatsappContacts.length > 0) {
                  const firstContact = whatsappContacts[0];
-                 const message = `Olá, ${name}! Seu(s) número(s) na rifa solidária é(são): ${paidNumbers.join(', ')}. Valor: R$ ${amount.toFixed(2).replace('.', ',')}. Agradecemos sua participação!`;
+                 const message = `Olá, ${name}! Seu(s) número(s) na rifa solidária é(são): ${selectedManualNumbers.join(', ')}. Valor: R$ ${amount.toFixed(2).replace('.', ',')}. Agradecemos sua participação!`;
                  if (confirm(`Deseja enviar a notificação para o WhatsApp do participante?`)) {
                      window.open(`https://wa.me/${firstContact}?text=${encodeURIComponent(message)}`, '_blank');
                  }
              }
+            
+            selectedManualNumbers = [];
         }
         
         function removeParticipant(numberStr) {
