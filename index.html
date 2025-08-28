@@ -912,6 +912,24 @@
         .admin-action-btn.available {
             background: #00b894; /* Green */
         }
+        
+        #drawWinnerBtn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #ff7675, #e17055);
+            color: white;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-top: 20px;
+            display: none;
+            width: 100%;
+        }
+
+        #drawWinnerBtn:hover {
+            transform: translateY(-2px);
+        }
 
         /* --- Estilos para a animação de sorteio --- */
         .winner-animation {
@@ -1077,6 +1095,8 @@
                 <h2>🎉 Ganhador da Rifa 🎉</h2>
                 <p id="winnerText"></p>
             </div>
+            
+            <button class="save-btn" id="drawWinnerBtn" style="display:none;" onclick="drawWinner()">🏆 Sortear Ganhador</button>
 
             <div class="bundles-section" id="bundlesSection" style="display:none;">
                 <h2 class="numbers-title">🎁 Compre Pacotes de Números</h2>
@@ -1339,7 +1359,6 @@
                     <div class="admin-controls">
                         <button class="end-raffle-btn" onclick="endRaffle()">Encerrar Rifa</button>
                         <button class="reset-raffle-btn" onclick="resetRaffle()">Reiniciar Rifa</button>
-                        <button class="save-btn" id="drawWinnerBtn" style="display:none;" onclick="drawWinner()">🏆 Sortear Ganhador</button>
                     </div>
                 </div>
                 
@@ -1673,6 +1692,7 @@
                 document.getElementById('countdownContainer').innerHTML = '<h2>Rifa Encerrada!</h2>';
                 document.getElementById('numbersContainer').style.display = 'none';
                 document.getElementById('raffleEnded').style.display = 'block';
+                document.getElementById('drawWinnerBtn').style.display = 'block';
                 saveState();
             }
         }
@@ -1719,14 +1739,20 @@
             if (raffleEnded) {
                 bundlesContainer.style.display = 'none';
                 numbersContainer.style.display = 'none';
+                document.getElementById('raffleEnded').style.display = 'block';
+                if (features.randomWinnerDrawEnabled) {
+                    document.getElementById('drawWinnerBtn').style.display = 'block';
+                }
                 return;
             } else {
-                if (!isManualSelection) {
+                 document.getElementById('raffleEnded').style.display = 'none';
+                 document.getElementById('drawWinnerBtn').style.display = 'none';
+                 if (!isManualSelection) {
                     bundlesContainer.style.display = features.bundlesEnabled ? 'block' : 'none';
                     numbersContainer.style.display = 'block';
-                }
+                 }
             }
-
+           
             if (isManualSelection) {
                 bundlesContainer.style.display = 'none';
                 document.getElementById('numbersTitle').textContent = `Escolha ${currentBundle.num} Número(s)`;
@@ -2202,8 +2228,7 @@
                 generateNumbers();
             }
             if (featureName === 'randomWinnerDrawEnabled') {
-                document.getElementById('drawWinnerBtn').style.display = features.randomWinnerDrawEnabled ? 'block' : 'none';
-                document.getElementById('winnerDisplay').style.display = 'none';
+                updateDrawWinnerBtnVisibility();
             }
         }
 
@@ -2385,9 +2410,18 @@
                     }
                 }
             }
-
+            
             document.getElementById('subtitleSection').style.display = features.customSubtitlesEnabled ? 'block' : 'none';
-            document.getElementById('drawWinnerBtn').style.display = features.randomWinnerDrawEnabled ? 'block' : 'none';
+            updateDrawWinnerBtnVisibility();
+        }
+
+        function updateDrawWinnerBtnVisibility() {
+            const btn = document.getElementById('drawWinnerBtn');
+            if (features.randomWinnerDrawEnabled && raffleEnded) {
+                btn.style.display = 'block';
+            } else {
+                btn.style.display = 'none';
+            }
         }
         
         function updateAdminContent() {
@@ -2524,14 +2558,16 @@
                 alert('⚠️ Não há participantes para sortear!');
                 return;
             }
-            if (raffleEnded) {
-                alert('⚠️ A rifa já foi encerrada e o sorteio não pode ser refeito.');
+            if (!raffleEnded) {
+                alert('⚠️ A rifa ainda não foi encerrada. O sorteio só pode ser realizado após o encerramento.');
                 return;
             }
             
             document.getElementById('numbersContainer').style.display = 'none';
             document.getElementById('raffleDescriptionSection').style.display = 'none';
             document.getElementById('countdownContainer').style.display = 'none';
+            document.getElementById('raffleEnded').style.display = 'none';
+            document.getElementById('drawWinnerBtn').style.display = 'none';
             document.getElementById('winnerAnimation').style.display = 'block';
 
             const winningParticipant = participants[Math.floor(Math.random() * participants.length)];
@@ -2554,7 +2590,6 @@
                 winnerInfoDisplay.innerHTML = `Parabéns, ${winnerName}!`;
                 winnerInfoDisplay.style.display = 'block';
                 document.getElementById('drawWinnerBtn').style.display = 'none';
-                document.getElementById('raffleEnded').style.display = 'block';
                 raffleEnded = true;
                 saveState();
             }, 5000);
@@ -2896,6 +2931,7 @@
             generateNumbers();
             trackVisit();
             startCountdown();
+            updateAdminSettingsToggles();
         });
     </script>
 </body>
